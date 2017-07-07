@@ -5,6 +5,7 @@ description: >
     Greg d'Eon's personal website
 baseurl: ""
 url: "https://gregdeon.github.io"
+repourl: "https://github.com/gregdeon/gregdeon.github.io"
 twitter_username: kynitt
 github_username:  gregdeon
 # Build Settings
