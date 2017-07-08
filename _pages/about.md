@@ -2,7 +2,6 @@
 layout: page
 title: About
 permalink: /
-order: 1
 ---
 
 I'm a Master's student in the [David R. Cheriton School of Computing Science](https://cs.uwaterloo.ca/) at the University of Waterloo. I am co-supervised by [Edith Law](http://edithlaw.ca/) and [Kate Larson](https://cs.uwaterloo.ca/~klarson/). I'll be starting my degree at Waterloo in September 2017.

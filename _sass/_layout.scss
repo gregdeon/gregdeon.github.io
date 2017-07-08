@@ -15,12 +15,12 @@ h3 {
 	line-height: 1.5;
 }
 h1 {
-	color: $main;
+	color: $header-link;
 	font-size: 2.5em;
 	a,
 	a:visited {
 		text-decoration: none;
-		color: $main;
+		color: $header-link;
 	}
 }
 h2 {
@@ -29,23 +29,23 @@ h2 {
 a,
 a:visited {
 	color: $link-color;
-	text-decoration: underline;
+	text-decoration: none;
 	font-weight: bold;
 }
 a:hover {
 	color: $link-hover-color;
-	text-decoration: underline;
 }
 header {
 	background: $header;
 	padding: 0px 15px;
 	text-align: center;
 	margin: 50px 0 0;
-	height: 50vh;
+	height: 7em;
 	display: flex;
 	justify-content: center;
 	align-items: center;
 }
+
 main {
 	padding: 0 15px;
 	max-width: $content-width;
@@ -93,8 +93,12 @@ aside {
 					&:active {
 						background: $header;
 						text-decoration: none;
-						color: $main;
+						color: $header-link;
 					}
+				}
+				a.current {
+					background: $header;
+					color: $header-link;
 				}
 			}
 		}

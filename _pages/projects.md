@@ -2,17 +2,16 @@
 layout: page
 title: Projects
 permalink: /projects/
-order: 2
 ---
 
-# University of Waterloo
+## University of Waterloo
 When I start studying at Waterloo, I'll update this page with details about my research. Until then, take a look at [Edith Law's work on crowdsourcing](http://edithlaw.ca/research.html) and [Kate Larson's work on multi-agent systems](https://cs.uwaterloo.ca/~klarson/publications.html).
 
 
-# Dalhousie University
+## Dalhousie University
 While I was studying Computer Engineering at Dalhousie, I had a chance to work on a wide range of projects. Here are a few of them:
 
-## ChipWhisperer
+### ChipWhisperer
 <center>
 <img src="{{ site.baseurl }}/files/cw-lite.jpg" width="200">
 </center>
@@ -22,7 +21,7 @@ At [NewAE Technology](http://newae.com/), I helped develop the ChipWhisperer too
 * Developing two large Python programs to control the ChipWhisperer hardware and analyze recorded data
 * Writing tutorials and training material on the theoretical background and features in the ChipWhisperer
 
-## Jeff Dahn Research Group
+### Jeff Dahn Research Group
 <center>
 <img src="{{ site.baseurl }}/files/dahn-fra.jpg" width="200">
 </center>
