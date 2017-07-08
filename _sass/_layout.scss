@@ -59,12 +59,24 @@ time {
 	margin: 0 auto;
 }
 
-/* Table for front page */
-#front_table {
+/* Table for image on one side, text on the other*/
+table.image-text {
+	table-layout:fixed;
+	width: 100%;
 	display: block;
-}
-#front_table td {
-	display: inline-block;
+	td {
+		padding: 10px;
+		display: inline-block;
+		img {
+			display: block;
+			width: 250px;
+			margin: 0 auto;
+		}
+		div{
+			text-align: center;
+			white-space: nowrap;
+		}
+	}
 }
 
 /* Aside */
