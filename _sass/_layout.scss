@@ -70,7 +70,9 @@ table.image-text {
 		width: 50%;
 		img {
 			display: block;
-			width: 250px;
+			width: 100%;
+			max-width: 400px;
+			/*width: 250px;*/
 			margin: 0 auto;
 		}
 		div{
