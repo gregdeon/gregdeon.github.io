@@ -67,6 +67,7 @@ table.image-text {
 	td {
 		padding: 10px;
 		display: inline-block;
+		width: 50%;
 		img {
 			display: block;
 			width: 250px;
@@ -75,6 +76,22 @@ table.image-text {
 		div{
 			text-align: center;
 			white-space: nowrap;
+		}
+	}
+}
+
+/* Special table rules for mobile */
+@media screen and (max-width: 650px) {
+	table.image-text {
+		display: block;
+
+		td {
+			display: block;
+			width: 100%;
+			border: none;
+			border-bottom: 1px;
+			position: relative;
+			padding-left: 0%;
 		}
 	}
 }
