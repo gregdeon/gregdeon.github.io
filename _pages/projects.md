@@ -18,7 +18,9 @@ At <a href="http://newae.com/">NewAE Technology</a>, I helped develop the ChipWh
 <ul>
 <li> Creating embedded software, including C and Verilog firmware for the ChipWhisperer and a variety of encryption routines for various target devices </li>
 <li> Developing two large Python programs to control the ChipWhisperer hardware and analyze recorded data </li>
+<li> Designing a remote analysis system, including high-performance statistical analysis methods and a client/server web API</li>
 <li> Writing tutorials and training material on the theoretical background and features in the ChipWhisperer </li>
+<li> Maintaining the public Github repository, managing releases, issue reports, and pull requests</li>
 </ul>
 </td>
 <td><img src="{{ site.baseurl }}/files/cw-lite.jpg"></td>
