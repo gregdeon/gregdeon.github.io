@@ -31,16 +31,16 @@ const WORD_LISTS = [
     [
         "MYSTERIOUS",
         "CHALLENGER",
-        "INITIATIVE",
-        "CINCINATTI",
-        "EMBROIDERY",
-        "PERCUSSION",
-        "TESSELLATE",
-        "EQUESTRIAN",
-        "LITERATURE",
-        "WATERMELON",
-        "BELONGINGS",
-        "ABSOLUTION"
+//        "INITIATIVE",
+//        "CINCINATTI",
+//        "EMBROIDERY",
+//        "PERCUSSION",
+//        "TESSELLATE",
+//        "EQUESTRIAN",
+//        "LITERATURE",
+//        "WATERMELON",
+//        "BELONGINGS",
+//        "ABSOLUTION"
     ],
     
     // Balanced game
@@ -92,12 +92,19 @@ const WORD_LISTS = [
     ]
 ]
 
+// Colors for each player
+const PLAYER_COLORS = [
+    "#000000",
+    "#FF0000"
+];
+
 var current_mode = MAIN_MENU;
 
 var game_running = false;
 
 // Utilities
-function getRandomInt(min, max) {
+function getRandomInt(min, max) 
+{
     min = Math.ceil(min);
     max = Math.ceil(max);
     return Math.floor(Math.random() * (max - min)) + min;
@@ -105,11 +112,24 @@ function getRandomInt(min, max) {
 
 function shuffleArray(arr)
 {
-    // TODO: Fisher-Yates shuffle
+    for(var i = 0; i < arr.length-1; i++)
+    {
+        var j = getRandomInt(i, arr.length)
+        var temp_val = arr[i];
+        arr[i] = arr[j];
+        arr[j] = temp_val;
+    }
+
     return arr;
 }   
 
+// ----- Game timer
+// When the timer was started
+var game_start_date;
+
 // Game screen setup
+// Position of scrolling bar
+const box_height = 50;
 // Width/height of each letter's box
 const box_size = 80;
 // Number of boxes that could be on the screen
@@ -117,9 +137,17 @@ const num_boxes = canvas.width / box_size + 1;
 // Current distance from leftmost box edge to left screen edge
 var box_offset = 0;
 // Number of boxes appearing per ms
+// DEBUG
 var box_rate = 0.002;
+//var box_rate = 0.002;
 
 // Game state
+// The word list we're using
+var word_list;
+
+// Which player is responsible for each letter
+var word_players;
+
 // Letters currently on the screen
 // One element of this list is like {word:1, char:3, player:1}
 // If null, there's no letter here (probably someone typed it)
@@ -138,21 +166,27 @@ var letters_shuffled;
 var letters_typed;
 
 // The number of letters that could still be typed (haven't left the screen yet)
-var letters_left;
+var num_letters_left;
+
+// The number of letters we typed (didn't miss)
+var num_letters_typed;
 
 function setupGameState(game_num)
 {
     // Set up the global game variables
-    
+    word_list = WORD_LISTS[game_num];
+    word_players = [];
     letters_shuffled = [];
     letters_typed = [];
     
-    for(var word_idx = 0; word_idx < WORD_LISTS.length; word_idx++)
+    for(var word_idx = 0; word_idx < word_list.length; word_idx++)
     {
-        letters_typed.push[];
-        for(var char_idx = 0; char_idx < WORD_LISTS[word_idx].length; char_idx++)
-        {    
-            var letter = WORD_LISTS[word_idx][char_idx];
+        word_players.push([]);
+        letters_typed.push([]);
+        for(var char_idx = 0; char_idx < word_list[word_idx].length; char_idx++)
+        {
+            // Add this character to the shuffled list 
+            var letter = word_list[word_idx][char_idx];
             var player = 0;
             if(player_letters[1].indexOf(letter) >= 0)
             {
@@ -165,23 +199,70 @@ function setupGameState(game_num)
                 player: player
             });
             
-            letters_typed.push(false);
+            // Make a spot for the typed letter
+            letters_typed[word_idx].push(false);
+            word_players[word_idx].push(player);
         }
     }
+    
+    letters_shuffled = shuffleArray(letters_shuffled);
     
     for(var i = 0; i < letters_on_screen.length; i++)
     {
         letters_on_screen[i] = null;
     }
     
-    letters_left = letters_shuffled.length;
+    num_letters_left = letters_shuffled.length;
+    
+    game_start_date = Date.now();
+    last_box_update = null;
+}
+
+function getWordMisses(word_idx)
+{
+    // Count how many letters each player missed
+    var ret = [0, 0];
+    
+    for(var i = 0; i < word_list[word_idx].length; i++)
+    {
+        if(!letters_typed[word_idx][i])
+        {
+            player = word_players[word_idx][i];
+            ret[player] += 1;
+        }
+    }
+    return ret;
+}
+
+function getWordScore(word_idx)
+{
+    // Return how many points the team earned for this word
+    var score = 0;
+    
+    // +1 point for each letter
+    for(var i = 0; i < word_list[word_idx].length; i++)
+    {
+        if(letters_typed[word_idx][i])
+        {
+            score += 1;
+        }
+    }
+    
+    // +5 points for the full word
+    if(score == word_list[word_idx].length)
+    {
+        score += 5;
+    }
+    
+    return score;
 }
 
 // Set the letter speed
 function setBoxSpeed()
 {
     // TODO: adaptive rate
-    box_rate = 0.002;
+    //box_rate = 0.002;
+
 //    time_elapsed = getTimeElapsed();
 //    window_size = 5000;
 ////    while(hit_times[0].length > 0 && hit_times[0][0] < time_elapsed - window_size)
@@ -205,19 +286,6 @@ function setBoxSpeed()
 //    }
 }
 
-// Add a new random letter for player <player> to the right end of the list
-// <player> should be 0 (player 1) or 1 (player 2)
-function addNewLetter(player)
-{
-    arr = player_letters[player];
-
-    new_letter = {
-        letter: arr[getRandomInt(0, arr.length)],
-        player: player
-    };
-    letters_on_screen.push(new_letter);
-}
-
 // Someone pressed <letter>
 function handleSingleLetter(letter)
 {
@@ -225,19 +293,6 @@ function handleSingleLetter(letter)
     if(!game_running)
         return;
     
-    // Figure out which player did this
-    if(player_letters[0].indexOf(letter) >= 0)
-    {
-        player = 0;
-    }
-    else if(player_letters[1].indexOf(letter) >= 0)
-    {
-        player = 1;
-    }
-    else 
-    {
-        return;
-    }
     
     // Run through the list of letters on screen
     // If this matches one for this player, take it off
@@ -246,16 +301,19 @@ function handleSingleLetter(letter)
         if(letters_on_screen[i] === null)
             continue;
         
-        if(letters_on_screen[i].player != player)
-            continue;
+        var word_num = letters_on_screen[i].word_num;
+        var char_num = letters_on_screen[i].char_num;
+        var box_letter = word_list[word_num][char_num];
         
-        if(letters_on_screen[i].letter === letter)
+        if(box_letter === letter)
         {
+            // If we find a match, also update our counters
             letters_on_screen[i] = null;
-            num_hit[player] += 1;
-            //hit_times[player].push(getTimeElapsed());
+            letters_typed[word_num][char_num] = true;
+            num_letters_typed += 1;
+            num_letters_left -= 1;
             
-            // TODO: customize this for different game modes
+            // Update the scroll speed
             setBoxSpeed();
             
             break;
@@ -268,11 +326,11 @@ function drawBoxes()
     for(i = 0; i < num_boxes; i++)
     {
         box_x = box_offset + i*box_size;
-        box_y = (canvas.height - box_size) / 2;
+        box_y = box_height;
         
         ctx.beginPath();
         ctx.rect(box_x, box_y, box_size, box_size);
-        ctx.fillStyle = "#000000";
+        ctx.strokeStyle = "#000000";
         ctx.stroke();
         ctx.closePath();
         
@@ -280,20 +338,16 @@ function drawBoxes()
         text_y = box_y + 0.80*box_size;
         
         if (!(letters_on_screen[i] === null))
-        {
-            letter = letters_on_screen[i].letter;
-            player = letters_on_screen[i].player;
+        {        
+            var word_num = letters_on_screen[i].word_num;
+            var char_num = letters_on_screen[i].char_num;
+            var box_player = letters_on_screen[i].player;
+            var box_letter = word_list[word_num][char_num];
+            
             ctx.font = "64px Arial";
             ctx.textAlign = "center";
-            if(player == 0)
-            {
-                ctx.fillStyle = "#000000";
-            } 
-            else 
-            {
-                ctx.fillStyle = "#FF0000";
-            }
-            ctx.fillText(letter, text_x, text_y);
+            ctx.fillStyle = PLAYER_COLORS[box_player];
+            ctx.fillText(box_letter, text_x, text_y);
         }
     }
 }
@@ -301,7 +355,7 @@ function drawBoxes()
 var last_box_update = null;
 function updateBoxOffset()
 {
-    current_time = Date.now();
+    var current_time = Date.now();
     
     if(last_box_update !== null)
     {
@@ -311,17 +365,18 @@ function updateBoxOffset()
         {
             box_offset += box_size;
             
-            // Remove the left-most letter
+            // Remove the left-most letter and update the scroll speed
             if(letters_on_screen[0] !== null)
             {
-                num_miss[letters_on_screen[0].player] += 1;
-                // TODO: customize this for different game modes
+                num_letters_left -= 1;
                 setBoxSpeed();
             }
             
             // (pop item 0)
             letters_on_screen.splice(0, 1);
             
+            // Add a new letter to the right side
+            // If there's one left in the shuffled list, use that one
             var new_letter = null;
             if(letters_shuffled.length > 0)
             {
@@ -332,39 +387,6 @@ function updateBoxOffset()
     }  
     
     last_box_update = current_time;
-}
-
-function drawScore()
-{
-    num_1 = num_hit[0];
-    den_1 = num_hit[0] + num_miss[0];
-    
-    if(den_1 == 0)
-        percent_1 = 0;
-    else 
-        percent_1 = Math.floor(100.0 * num_1 / den_1);
-    
-    num_2 = num_hit[1];
-    den_2 = num_hit[1] + num_miss[1];
-    
-    if(den_2 == 0)
-        percent_2 = 0;
-    else 
-        percent_2 = Math.floor(100.0 * num_2 / den_2);
-    
-    ctx.textAlign = "left";
-    ctx.font = "36px Arial";
-    ctx.fillStyle = "#000000";
-    ctx.fillText(
-        "Player 1: " + num_1 + "/" + den_1 + " (" + percent_1 + "%)", 
-        8, 36
-    );
-    
-    ctx.fillStyle = "#FF0000";
-    ctx.fillText(
-        "Player 2: " + num_2 + "/" + den_2 + " (" + percent_2 + "%)", 
-        8, 390
-    );
 }
 
 function displayHangmanWord(str, player, filled, x, y, size)
@@ -381,22 +403,14 @@ function displayHangmanWord(str, player, filled, x, y, size)
     {
         // Positions
         var text_x = x + i*size;
-        var text_y = y + size;
+        var text_y = y;
         var line_x_start = x + i*size;
         var line_x_end   = line_x_start + size*0.9;
-        var line_y = y + size * 1.1;
+        var line_y = text_y + size * 0.1;
         
         // Pick color based on player
-        if(player[i] == 0)
-        {
-            ctx.strokeStyle = "#000000";
-            ctx.fillStyle = "#000000";            
-        }
-        else
-        {
-            ctx.strokeStyle = "#FF0000";
-            ctx.fillStyle = "#FF0000";            
-        }
+        ctx.strokeStyle = PLAYER_COLORS[player[i]]
+        ctx.fillStyle = PLAYER_COLORS[player[i]]
         
         // Draw line and maybe letter
         ctx.beginPath();
@@ -408,6 +422,43 @@ function displayHangmanWord(str, player, filled, x, y, size)
         }
         ctx.stroke();
         ctx.closePath();
+    }
+}
+
+const game_words_x1 = 50;
+const game_words_x2 = canvas.width/2 + 50;
+const game_words_y = 170;
+const game_words_size = 24;
+const game_words_spacing = 32;
+
+function displayWords()
+{
+    for(var i = 0; i < word_list.length; i += 2)
+    {
+        var word_x = game_words_x1;
+        var word_y = game_words_y + (i/2)*game_words_spacing;
+        
+        displayHangmanWord(
+            word_list[i], 
+            word_players[i], 
+            letters_typed[i], 
+            word_x,
+            word_y,
+            game_words_size
+        );
+        
+        if(i+1 < word_list.length)
+        {
+            word_x = game_words_x2;
+            displayHangmanWord(
+                word_list[i+1], 
+                word_players[i+1], 
+                letters_typed[i+1], 
+                word_x,
+                word_y,
+                game_words_size
+            );
+        }
     }
 }
 
@@ -467,6 +518,16 @@ function handleKeys()
 
 // ----- Game loops
 // Display the final score (and payoffs?)
+const score_header_y = 75;
+const score_ids_x = 80;
+const score_words_x = 100;
+const score_p1_x = 320;
+const score_p2_x = 450;
+const score_value_x = 580;
+const score_words_y = 100;
+const score_words_size = 20;
+const score_words_spacing = 22;
+
 function scoreScreen()
 {
     game_running = false;
@@ -474,41 +535,57 @@ function scoreScreen()
     // Background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // TODO: refactor score calculation
-    num_1 = num_hit[0];
-    den_1 = num_hit[0] + num_miss[0];
-    
-    if(den_1 == 0)
-        percent_1 = 0;
-    else 
-        percent_1 = Math.floor(100.0 * num_1 / den_1);
-    
-    num_2 = num_hit[1];
-    den_2 = num_hit[1] + num_miss[1];
-    
-    if(den_2 == 0)
-        percent_2 = 0;
-    else 
-        percent_2 = Math.floor(100.0 * num_2 / den_2);
-    
     ctx.textAlign = "center";
-    ctx.font = "48px Arial";
+    ctx.font = "40px Arial";
     ctx.fillStyle = "#000000";
+    ctx.fillText("Game Over", canvas.width/2, 40);
     
-    ctx.fillText("Final Score:", canvas.width/2, 50);
+    ctx.font = "" + score_words_size + "px Arial";
+    ctx.textAlign = "right";
+    ctx.fillText("#", score_ids_x, score_header_y);
+    ctx.textAlign = "left";
+    ctx.fillText("Word", score_words_x, score_header_y);
+    ctx.fillText("P1 Misses", score_p1_x, score_header_y);
+    ctx.fillText("P2 Misses", score_p2_x, score_header_y);
+    ctx.fillText("Score", score_value_x, score_header_y);
     
-    ctx.fillText("Player 1:", canvas.width/2, 150);
-    ctx.fillText(
-        "" + num_1 + "/" + den_1 + " (" + percent_1 + "%)", 
-        canvas.width/2, 200
-    );
+    var total_score = 0;
+    var word_x = score_words_x;
+    var word_y;
     
-    ctx.fillStyle = "#FF0000";
-    ctx.fillText("Player 2:", canvas.width/2, 300);
-    ctx.fillText(
-        "" + num_2 + "/" + den_2 + " (" + percent_2 + "%)", 
-        canvas.width/2, 350
-    );
+    for(var i = 0; i < word_list.length; i++)
+    {
+        word_y = score_words_y + i*score_words_spacing;
+        
+        ctx.textAlign = "right";
+        ctx.font = "" + score_words_size + "px Arial";
+        ctx.fillStyle = "#000000";
+        ctx.fillText("" + (i+1), score_ids_x, word_y);
+        
+        displayHangmanWord(
+            word_list[i], 
+            word_players[i], 
+            letters_typed[i], 
+            word_x,
+            word_y,
+            score_words_size
+        );
+        
+        var miss = getWordMisses(i);
+        var score = getWordScore(i);
+        total_score += score;
+
+        ctx.fillStyle = "#000000";
+        ctx.fillText("" + miss[0], score_p1_x, word_y);
+        ctx.fillText("" + miss[1], score_p2_x, word_y);
+        ctx.fillText("" + score, score_value_x, word_y);
+    }
+    
+    word_y += score_words_spacing * 1.5;
+    ctx.textAlign = "right";
+    ctx.fillText("Total:", score_value_x - 10, word_y);
+    ctx.textAlign = "left";
+    ctx.fillText("" + total_score, score_value_x, word_y);
     
     return_to_menu = handleKeys();
     if(return_to_menu)
@@ -524,8 +601,8 @@ function gameLoop()
 {
     game_running = true;
     
-    // Run game until timer up
-    if(getTimeLeft() < 0)
+    // Run game until no more letters to type
+    if(num_letters_left == 0)
     {
         scoreScreen();
         return;
@@ -536,13 +613,13 @@ function gameLoop()
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     updateBoxOffset();
     drawBoxes();
-    drawTimer();
-    drawScore();
-
+    displayWords();
 
     ctx.font = "36px Arial";
     ctx.fillStyle = "#000000";
     ctx.fillText("Last Key Pressed: " + String.fromCharCode(last_key_num), 450, 390);
+    
+    console.log(getWordScore(0));
     
     requestAnimationFrame(gameLoop);
 }
@@ -550,25 +627,15 @@ function gameLoop()
 function runGame(game_number)
 {
     // Reset scores and letters
-    num_hit[0] = 0;
-    num_hit[1] = 0;
-    num_miss[0] = 0;
-    num_miss[1] = 0;
-    for(j = 0; j < letters_on_screen.length; j++)
-    {
-        letters_on_screen[j] = null;
-    }
-    last_box_update = null;
+    setupGameState(game_number);
     
-    // Start the timer
-    startTimer(GAME_LENGTH);
     gameLoop();
 }
 
 
 // ----- Main menu screen
 // Strings to write in each of the buttons
-var game_names = [
+const game_names = [
     "Single Player",
     "Game 1",
     "Game 2",
@@ -579,10 +646,10 @@ var game_names = [
 var selected_game = 0;
 
 // Button sizing
-var button_width = 300;
-var button_height = 40;
-var button_spacing = 30;
-var button_offset = 100;
+const button_width = 300;
+const button_height = 40;
+const button_spacing = 30;
+const button_offset = 100;
 
 // Display the main menu screen
 function mainMenu()
