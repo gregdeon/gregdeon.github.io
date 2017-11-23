@@ -1,12 +1,97 @@
 var canvas = document.getElementById("myCanvas");
 var ctx = canvas.getContext("2d");
 
-
+// Numbers representing each screen
 const MAIN_MENU = -1;
 const SINGLE_PLAYER = 0;
 const GAME_1 = 1;
 const GAME_2 = 2;
 const GAME_3 = 3;
+
+// Letters that could be assigned to each player
+const player_letters = [
+    // Player 1: left side
+    [
+        'Q', 'W', 'E', 'R', 'T', 
+        'A', 'S', 'D', 'F',
+        'Z', 'X', 'C', 'V'
+    ],
+    
+    // Player 2: right side
+    [
+        'Y', 'U', 'I', 'O', 'P',
+        'G', 'H', 'J', 'K', 'L',
+        'B', 'N', 'M'
+    ]
+];
+
+// Words for each game
+const WORD_LISTS = [
+    // Single player
+    [
+        "MYSTERIOUS",
+        "CHALLENGER",
+        "INITIATIVE",
+        "CINCINATTI",
+        "EMBROIDERY",
+        "PERCUSSION",
+        "TESSELLATE",
+        "EQUESTRIAN",
+        "LITERATURE",
+        "WATERMELON",
+        "BELONGINGS",
+        "ABSOLUTION"
+    ],
+    
+    // Balanced game
+    [
+        "CALIFORNIA",
+        "GYMNASTICS",
+        "SILHOUETTE",
+        "RENOVATION",
+        "DISPOSABLE",
+        "GENEROSITY",
+        "TEMPTATION",
+        "APOSTROPHE",
+        "DIABOLICAL",
+        "TRAMPOLINE",
+        "WATERMELON",
+        "ADAPTATION",
+    ],
+    
+    // P1-hard game
+    [
+        "FOOTPRINTS",
+        "VULNERABLE",
+        "IMPECCABLE",
+        "GEOTHERMAL",
+        "HEMISPHERE",
+        "EUCALYPTUS",
+        "STALAGMITE",
+        "ELEMENTARY",
+        "REFRACTION",
+        "NARCISSIST",
+        "STARSTRUCK",
+        "ACCELERATE",
+    ],
+    
+    // P2-hard game
+    [
+        "HYPHENATED",
+        "VICTORIOUS",    
+        "DISNEYLAND",    
+        "BENEVOLENT",    
+        "EXPEDITION",    
+        "CHIMPANZEE",    
+        "PLAGIARISM",    
+        "SUGGESTION",    
+        "CHINCHILLA",    
+        "UBIQUITOUS",    
+        "MONOPOLIES",    
+        "UNYIELDING",
+    ]
+]
+
 var current_mode = MAIN_MENU;
 
 var game_running = false;
@@ -18,125 +103,119 @@ function getRandomInt(min, max) {
     return Math.floor(Math.random() * (max - min)) + min;
 }
 
-
-// ----- Game timer
-// When the timer was started
-var start_date;
-
-// How long the timer should last
-var timer_length = 60000;
-
-// Start a timer that will last <length> milliseconds
-function startTimer(length)
+function shuffleArray(arr)
 {
-    timer_length = length;
-    start_date = Date.now();
-}
+    // TODO: Fisher-Yates shuffle
+    return arr;
+}   
 
-// Check how much time has elapsed so far
-function getTimeElapsed()
-{
-    current_date = Date.now();
-    time_elapsed = current_date - start_date;
-    return time_elapsed;
-}
-
-// Check how many milliseconds are left on the running timer
-function getTimeLeft()
-{
-    return timer_length - getTimeElapsed();
-}
-
-// Draw the timer
-function drawTimer()
-{
-    time_left_ms = getTimeLeft();
-    time_left_s = Math.ceil(time_left_ms / 1000);
-
-    ctx.font = "36px Arial";
-    ctx.textAlign = "left";
-    ctx.fillStyle = "#000000";
-    ctx.fillText("Time: " + time_left_s, 650, 36);
-}
+// Game screen setup
+// Width/height of each letter's box
+const box_size = 80;
+// Number of boxes that could be on the screen
+const num_boxes = canvas.width / box_size + 1;
+// Current distance from leftmost box edge to left screen edge
+var box_offset = 0;
+// Number of boxes appearing per ms
+var box_rate = 0.002;
 
 // Game state
-// Letters that could be generated for each player
-var valid_letters = [
-//    Top/bottom rows
-//    ['Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O'],
-//    ['A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L']
-
-// Left/right sides
-    ['W', 'E', 'R', 'T', 'S', 'D', 'F', 'G'],
-    ['Y', 'U', 'I', 'O', 'H', 'J', 'K', 'L']
-];
-
 // Letters currently on the screen
-// One element of this list is like {letter:'Q', player:1}
+// One element of this list is like {word:1, char:3, player:1}
 // If null, there's no letter here (probably someone typed it)
-var letters_to_type = [];
-
-// Number of hits and misses for each player
-var num_hit = [0, 0];
-var num_miss = [0, 0];
-
-//var hit_times = [[], []]
-
-var box_size = 80;
-var box_offset = 0;
-var box_rate = 0.002;
-var num_boxes = canvas.width / box_size + 1;
-
-// Initial set of letters is empty
-while(letters_to_type.length < num_boxes)
+var letters_on_screen = [];
+while(letters_on_screen.length < num_boxes)
 {
-    letters_to_type.push(null);
+    letters_on_screen.push(null);
+}
+
+// Letters that haven't been put on the screen yet
+// Initialized randomly at start of game
+var letters_shuffled;
+
+// Whether we've typed each of the characters
+// Initialized to all false at start of game
+var letters_typed;
+
+// The number of letters that could still be typed (haven't left the screen yet)
+var letters_left;
+
+function setupGameState(game_num)
+{
+    // Set up the global game variables
+    
+    letters_shuffled = [];
+    letters_typed = [];
+    
+    for(var word_idx = 0; word_idx < WORD_LISTS.length; word_idx++)
+    {
+        letters_typed.push[];
+        for(var char_idx = 0; char_idx < WORD_LISTS[word_idx].length; char_idx++)
+        {    
+            var letter = WORD_LISTS[word_idx][char_idx];
+            var player = 0;
+            if(player_letters[1].indexOf(letter) >= 0)
+            {
+                player = 1;
+            }
+            
+            letters_shuffled.push({
+                word_num:word_idx,
+                char_num:char_idx,
+                player: player
+            });
+            
+            letters_typed.push(false);
+        }
+    }
+    
+    for(var i = 0; i < letters_on_screen.length; i++)
+    {
+        letters_on_screen[i] = null;
+    }
+    
+    letters_left = letters_shuffled.length;
 }
 
 // Set the letter speed
 function setBoxSpeed()
 {
-    time_elapsed = getTimeElapsed();
-    window_size = 5000;
-//    while(hit_times[0].length > 0 && hit_times[0][0] < time_elapsed - window_size)
-//        hit_times[0].shift();
-    
-    goal_hit = 0.8;
-    // rate_emp = 1.0 * hit_times[0].length / window_size;
-    // box_rate = rate_emp / goal_hit;
-    
-    rate_emp = 1.0 * (num_hit[0] + num_hit[1]) / getTimeElapsed();
-    box_rate = rate_emp / goal_hit;
-    //
-    //if(num_hit[0] > (num_hit[0] + num_miss[0]) * goal_hit)
-    //    box_rate *= 1.41;
-    
-    console.log(rate_emp + " " + box_rate);
-    
-    if(box_rate < 0.002)
-    {
-        box_rate = 0.002;
-    }
-}
-
-// Take the left-most letter out of the list
-// This happens when a letter hits the left edge
-function removeFirstLetter()
-{
-    letters_to_type.splice(0, 1);
+    // TODO: adaptive rate
+    box_rate = 0.002;
+//    time_elapsed = getTimeElapsed();
+//    window_size = 5000;
+////    while(hit_times[0].length > 0 && hit_times[0][0] < time_elapsed - window_size)
+////        hit_times[0].shift();
+//    
+//    goal_hit = 0.8;
+//    // rate_emp = 1.0 * hit_times[0].length / window_size;
+//    // box_rate = rate_emp / goal_hit;
+//    
+//    rate_emp = 1.0 * (num_hit[0] + num_hit[1]) / getTimeElapsed();
+//    box_rate = rate_emp / goal_hit;
+//    //
+//    //if(num_hit[0] > (num_hit[0] + num_miss[0]) * goal_hit)
+//    //    box_rate *= 1.41;
+//    
+//    console.log(rate_emp + " " + box_rate);
+//    
+//    if(box_rate < 0.002)
+//    {
+//        box_rate = 0.002;
+//    }
 }
 
 // Add a new random letter for player <player> to the right end of the list
 // <player> should be 0 (player 1) or 1 (player 2)
 function addNewLetter(player)
 {
-    arr = valid_letters[player];
+    arr = player_letters[player];
 
     new_letter = {
         letter: arr[getRandomInt(0, arr.length)],
         player: player
     };
-    letters_to_type.push(new_letter);
+    letters_on_screen.push(new_letter);
 }
 
 // Someone pressed <letter>
@@ -147,11 +226,11 @@ function handleSingleLetter(letter)
         return;
     
     // Figure out which player did this
-    if(valid_letters[0].indexOf(letter) >= 0)
+    if(player_letters[0].indexOf(letter) >= 0)
     {
         player = 0;
     }
-    else if(valid_letters[1].indexOf(letter) >= 0)
+    else if(player_letters[1].indexOf(letter) >= 0)
     {
         player = 1;
     }
@@ -164,15 +243,15 @@ function handleSingleLetter(letter)
     // If this matches one for this player, take it off
     for(i = 0; i < num_boxes; i++)
     {
-        if(letters_to_type[i] === null)
+        if(letters_on_screen[i] === null)
             continue;
         
-        if(letters_to_type[i].player != player)
+        if(letters_on_screen[i].player != player)
             continue;
         
-        if(letters_to_type[i].letter === letter)
+        if(letters_on_screen[i].letter === letter)
         {
-            letters_to_type[i] = null;
+            letters_on_screen[i] = null;
             num_hit[player] += 1;
             //hit_times[player].push(getTimeElapsed());
             
@@ -200,10 +279,10 @@ function drawBoxes()
         text_x = box_x + box_size/2;
         text_y = box_y + 0.80*box_size;
         
-        if (!(letters_to_type[i] === null))
+        if (!(letters_on_screen[i] === null))
         {
-            letter = letters_to_type[i].letter;
-            player = letters_to_type[i].player;
+            letter = letters_on_screen[i].letter;
+            player = letters_on_screen[i].player;
             ctx.font = "64px Arial";
             ctx.textAlign = "center";
             if(player == 0)
@@ -232,17 +311,23 @@ function updateBoxOffset()
         {
             box_offset += box_size;
             
-            if(letters_to_type[0] !== null)
+            // Remove the left-most letter
+            if(letters_on_screen[0] !== null)
             {
-                num_miss[letters_to_type[0].player] += 1;
+                num_miss[letters_on_screen[0].player] += 1;
                 // TODO: customize this for different game modes
                 setBoxSpeed();
             }
             
-            removeFirstLetter();
-            // TODO: decide which player to pick a new letter for
-            player_num = getRandomInt(0,2);
-            addNewLetter(player_num);
+            // (pop item 0)
+            letters_on_screen.splice(0, 1);
+            
+            var new_letter = null;
+            if(letters_shuffled.length > 0)
+            {
+                new_letter = letters_shuffled.pop();
+            }
+            letters_on_screen.push(new_letter);
         }
     }  
     
@@ -280,6 +365,50 @@ function drawScore()
         "Player 2: " + num_2 + "/" + den_2 + " (" + percent_2 + "%)", 
         8, 390
     );
+}
+
+function displayHangmanWord(str, player, filled, x, y, size)
+{
+    // Display a set of blanks
+    // str is the string to show
+    // player is an int array (player[i] = 0/1: show character in P1/2 color)
+    // filled is a bool array (filled[i] = True: show; False: only draw blank
+    // x, y, size are position and size of string
+    ctx.textAlign = "left";
+    ctx.font = "" + size + "px Arial";
+    
+    for(var i = 0; i < str.length; i++)
+    {
+        // Positions
+        var text_x = x + i*size;
+        var text_y = y + size;
+        var line_x_start = x + i*size;
+        var line_x_end   = line_x_start + size*0.9;
+        var line_y = y + size * 1.1;
+        
+        // Pick color based on player
+        if(player[i] == 0)
+        {
+            ctx.strokeStyle = "#000000";
+            ctx.fillStyle = "#000000";            
+        }
+        else
+        {
+            ctx.strokeStyle = "#FF0000";
+            ctx.fillStyle = "#FF0000";            
+        }
+        
+        // Draw line and maybe letter
+        ctx.beginPath();
+        ctx.moveTo(line_x_start, line_y);
+        ctx.lineTo(line_x_end, line_y);
+        if(filled[i])
+        {
+            ctx.fillText(str[i], text_x, text_y);
+        }
+        ctx.stroke();
+        ctx.closePath();
+    }
 }
 
 // ----- Event queue
@@ -425,14 +554,14 @@ function runGame(game_number)
     num_hit[1] = 0;
     num_miss[0] = 0;
     num_miss[1] = 0;
-    for(j = 0; j < letters_to_type.length; j++)
+    for(j = 0; j < letters_on_screen.length; j++)
     {
-        letters_to_type[j] = null;
+        letters_on_screen[j] = null;
     }
     last_box_update = null;
     
     // Start the timer
-    startTimer(10000);
+    startTimer(GAME_LENGTH);
     gameLoop();
 }
 
@@ -469,6 +598,9 @@ function mainMenu()
     
     // Background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
+    
+    // DEBUG
+    displayHangmanWord("TEST WW", [0, 1, 0, 0, 1, 1, 0], [false, true, true, false, true, true, false], 10, 10, 24);
     
     // Title
     ctx.textAlign = "center";
