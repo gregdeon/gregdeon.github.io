@@ -31,16 +31,16 @@ const WORD_LISTS = [
     [
         "MYSTERIOUS",
         "CHALLENGER",
-//        "INITIATIVE",
-//        "CINCINATTI",
-//        "EMBROIDERY",
-//        "PERCUSSION",
-//        "TESSELLATE",
-//        "EQUESTRIAN",
-//        "LITERATURE",
-//        "WATERMELON",
-//        "BELONGINGS",
-//        "ABSOLUTION"
+        "INITIATIVE",
+        "CINCINATTI",
+        "EMBROIDERY",
+        "PERCUSSION",
+        "TESSELLATE",
+        "EQUESTRIAN",
+        "LITERATURE",
+        "WATERMELON",
+        "BELONGINGS",
+        "ABSOLUTION"
     ],
     
     // Balanced game
@@ -125,7 +125,7 @@ function shuffleArray(arr)
 
 // ----- Game timer
 // When the timer was started
-var game_start_date;
+var game_start_time;
 
 // Game screen setup
 // Position of scrolling bar
@@ -137,9 +137,7 @@ const num_boxes = canvas.width / box_size + 1;
 // Current distance from leftmost box edge to left screen edge
 var box_offset = 0;
 // Number of boxes appearing per ms
-// DEBUG
 var box_rate = 0.002;
-//var box_rate = 0.002;
 
 // Game state
 // The word list we're using
@@ -213,8 +211,9 @@ function setupGameState(game_num)
     }
     
     num_letters_left = letters_shuffled.length;
+    num_letters_typed = 0;
     
-    game_start_date = Date.now();
+    game_start_time = Date.now();
     last_box_update = null;
 }
 
@@ -257,33 +256,42 @@ function getWordScore(word_idx)
     return score;
 }
 
-// Set the letter speed
-function setBoxSpeed()
-{
-    // TODO: adaptive rate
-    //box_rate = 0.002;
+// Adaptive speed parameters
+// Minimum speed so we never get a speed of 0
+const min_speed = 0.002;
 
-//    time_elapsed = getTimeElapsed();
-//    window_size = 5000;
-////    while(hit_times[0].length > 0 && hit_times[0][0] < time_elapsed - window_size)
-////        hit_times[0].shift();
-//    
-//    goal_hit = 0.8;
-//    // rate_emp = 1.0 * hit_times[0].length / window_size;
-//    // box_rate = rate_emp / goal_hit;
-//    
-//    rate_emp = 1.0 * (num_hit[0] + num_hit[1]) / getTimeElapsed();
-//    box_rate = rate_emp / goal_hit;
-//    //
-//    //if(num_hit[0] > (num_hit[0] + num_miss[0]) * goal_hit)
-//    //    box_rate *= 1.41;
-//    
-//    console.log(rate_emp + " " + box_rate);
-//    
-//    if(box_rate < 0.002)
-//    {
-//        box_rate = 0.002;
-//    }
+// This is the error rate we want to achieve at equilibrium
+const goal_error_rate = 0.1;
+
+// This is our base update -- set it so we get good speeds without too much time
+const ratio_up = 0.04;
+
+// This is the downward update, based on the two above
+const ratio_down = (1 - goal_error_rate) / (goal_error_rate) * ratio_up;
+
+function setBoxSpeed(speed_up)
+{
+    // Set the letter scroll speed
+    // If speed_up = true, increase by factor of 1+ratio_up;
+    // otherwise, decrease by 1-ratio_down
+    
+    if(speed_up)
+    {
+        box_rate *= (1+ratio_up);
+    }
+    else
+    {
+        box_rate *= (1-ratio_down);
+    }
+    
+    // Clamp so we don't crash the game
+    if(box_rate < min_speed)
+    {
+        box_rate = min_speed;
+    }
+    
+    // Debug
+    console.log(box_rate);
 }
 
 // Someone pressed <letter>
@@ -314,7 +322,7 @@ function handleSingleLetter(letter)
             num_letters_left -= 1;
             
             // Update the scroll speed
-            setBoxSpeed();
+            setBoxSpeed(true);
             
             break;
         }
@@ -369,7 +377,7 @@ function updateBoxOffset()
             if(letters_on_screen[0] !== null)
             {
                 num_letters_left -= 1;
-                setBoxSpeed();
+                setBoxSpeed(false);
             }
             
             // (pop item 0)
@@ -550,6 +558,9 @@ function scoreScreen()
     ctx.fillText("Score", score_value_x, score_header_y);
     
     var total_score = 0;
+    var total_p1 = 0;
+    var total_p2 = 0;
+    
     var word_x = score_words_x;
     var word_y;
     
@@ -574,6 +585,8 @@ function scoreScreen()
         var miss = getWordMisses(i);
         var score = getWordScore(i);
         total_score += score;
+        total_p1 += miss[0];
+        total_p2 += miss[1];
 
         ctx.fillStyle = "#000000";
         ctx.fillText("" + miss[0], score_p1_x, word_y);
@@ -583,8 +596,10 @@ function scoreScreen()
     
     word_y += score_words_spacing * 1.5;
     ctx.textAlign = "right";
-    ctx.fillText("Total:", score_value_x - 10, word_y);
+    ctx.fillText("Total:", score_p1_x - 10, word_y);
     ctx.textAlign = "left";
+    ctx.fillText("" + total_p1, score_p1_x, word_y);
+    ctx.fillText("" + total_p2, score_p2_x, word_y);
     ctx.fillText("" + total_score, score_value_x, word_y);
     
     return_to_menu = handleKeys();
@@ -618,8 +633,6 @@ function gameLoop()
     ctx.font = "36px Arial";
     ctx.fillStyle = "#000000";
     ctx.fillText("Last Key Pressed: " + String.fromCharCode(last_key_num), 450, 390);
-    
-    console.log(getWordScore(0));
     
     requestAnimationFrame(gameLoop);
 }
@@ -666,9 +679,6 @@ function mainMenu()
     // Background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
-    // DEBUG
-    displayHangmanWord("TEST WW", [0, 1, 0, 0, 1, 1, 0], [false, true, true, false, true, true, false], 10, 10, 24);
-    
     // Title
     ctx.textAlign = "center";
     ctx.font = "48px Arial";
@@ -683,6 +693,7 @@ function mainMenu()
         
         ctx.beginPath();
         ctx.rect(button_x, button_y, button_width, button_height);
+        ctx.strokeStyle = "#000000";
         ctx.fillStyle = "#79d8d5";
         
         // Only fill the selected one
