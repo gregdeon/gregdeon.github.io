@@ -1,4 +1,5 @@
 var canvas = document.getElementById("myCanvas");
+var output_box = document.getElementById("outputText");
 var ctx = canvas.getContext("2d");
 
 // Numbers representing each screen
@@ -29,66 +30,162 @@ const player_letters = [
 const WORD_LISTS = [
     // Single player
     [
-        "MYSTERIOUS",
-        "CHALLENGER",
         "INITIATIVE",
-        "CINCINATTI",
-        "EMBROIDERY",
-        "PERCUSSION",
-        "TESSELLATE",
-        "EQUESTRIAN",
-        "LITERATURE",
-        "WATERMELON",
+        "CALAMITY",
+        "CONGRUENT",
         "BELONGINGS",
-        "ABSOLUTION"
+        "PERCUSSION",
+        "LEGENDARY",
+        "EQUALITY",
+        "HURRICANE",
+        "LITERATURE",
+        "KNOWLEDGE",
+        "FOUNTAIN",
+        "CONSONANT",
+        "BREATHING",
+        "HOPELESS",
+        "CHALLENGER",
+        "IMPORTANT",
+        "ALPHABET",
+        "AQUARIUM",
+        "SPORADIC",
+        "MYSTERIOUS",
+        "HOMEWORK",
+        "POSSIBLE",
+        "WATERMELON",
+        "ABSOLUTION",
+        "ADMIRABLE",
+        "DAUGHTER",
+        "TESSELLATE",
+        "EMBROIDERY",
+        "ETERNITY",
+        "CINCINATTI",
+        "INTEGRITY",
+        "MOUSTACHE",
+        "DIAMONDS",
+        "SIGNATURE",
+        "TANGERINE",
+        "EQUESTRIAN",
     ],
     
     // Balanced game
     [
-        "CALIFORNIA",
-        "GYMNASTICS",
+        "CROCODILE",
         "SILHOUETTE",
         "RENOVATION",
-        "DISPOSABLE",
-        "GENEROSITY",
-        "TEMPTATION",
-        "APOSTROPHE",
-        "DIABOLICAL",
-        "TRAMPOLINE",
+        "PRINCESS",
+        "KINDNESS",
+        "DIFFICULT",
         "WATERMELON",
+        "INJUSTICE",
+        "SQUIRREL",
+        "MECHANISM",
+        "APOSTROPHE",
+        "ORGANISM",
+        "ORDINARY",
+        "SAXOPHONE",
+        "AMERICAN",
+        "GYMNASTICS",
+        "TEMPTATION",
+        "EQUATION",
+        "INTERNAL",
+        "CHEMISTRY",  
+        "IDENTICAL",
+        "BALLISTIC",
+        "CHOCOLATE",
+        "SCORCHING",
+        "REPUBLIC",
+        "DIABOLICAL",
+        "GENEROSITY",
+        "EDUCATION",
+        "CALIFORNIA",
+        "DISPOSABLE",
+        "HYDROGEN",
+        "COUNTDOWN",
         "ADAPTATION",
+        "MEMORIES",
+        "ENVELOPE",
+        "TRAMPOLINE",
     ],
     
     // P1-hard game
     [
+        "SENSATION",
+        "PERIMETER",
+        "ELEMENTARY",
+        "WATERFALL",
+        "ADVOCATE",
+        "ANTEATER",
+        "GRADUATE",
+        "NARCISSIST",
+        "EVERYDAY",
+        "IMPECCABLE",
+        "TREASURE",
+        "HEMISPHERE",
+        "FLAWLESS",
+        "CHRISTMAS",
+        "EUCALYPTUS",
+        "ADDICTED",
+        "FAVORITE",
+        "DARKNESS",
+        "REFRACTION",
+        "ASTRONAUT",
+        "SLEEPOVER",
+        "GEOTHERMAL",
+        "ADVERSITY",
+        "VEGETABLE",
+        "NECESSARY",
+        "CLEVELAND",
+        "DISTANCE",
+        "STANDARD",
+        "STARSTRUCK",
+        "TERRITORY",
+        "STALAGMITE",
+        "ACCELERATE",
+        "DEDICATED",
+        "ELECTRIC",
         "FOOTPRINTS",
         "VULNERABLE",
-        "IMPECCABLE",
-        "GEOTHERMAL",
-        "HEMISPHERE",
-        "EUCALYPTUS",
-        "STALAGMITE",
-        "ELEMENTARY",
-        "REFRACTION",
-        "NARCISSIST",
-        "STARSTRUCK",
-        "ACCELERATE",
     ],
     
     // P2-hard game
     [
-        "HYPHENATED",
+        "HOMEWORK",
         "VICTORIOUS",    
+        "ABOUNDING",
+        "AMPHIBIAN",
+        "HAPPINESS",
+        "FUNCTION",
+        "LANGUAGE",
+        "COMMODITY",
+        "SYLLABLE",
+        "CHIPOTLE",
+        "FEMININE",
+        "THINKING",
+        "TINKERING",
         "DISNEYLAND",    
+        "CONFUSION",
+        "CLOTHING",
+        "POLLUTION",
         "BENEVOLENT",    
-        "EXPEDITION",    
-        "CHIMPANZEE",    
-        "PLAGIARISM",    
+        "HYPHENATED",
         "SUGGESTION",    
         "CHINCHILLA",    
-        "UBIQUITOUS",    
-        "MONOPOLIES",    
+        "INVISIBLE",
         "UNYIELDING",
+        "PLAGIARISM",    
+        "SWIMMING",
+        "ANYTHING",
+        "EXPEDITION",    
+        "MIDNIGHT",
+        "PINEAPPLE",
+        "SOLUTION",
+        "CHIMPANZEE",    
+        "MONOPOLIES",    
+        "MAGNESIUM",
+        "LIGHTNING",
+        "UBIQUITOUS",    
+        "JELLYFISH",
     ]
 ]
 
@@ -136,8 +233,11 @@ const box_size = 80;
 const num_boxes = canvas.width / box_size + 1;
 // Current distance from leftmost box edge to left screen edge
 var box_offset = 0;
+
+// Default speed
+const box_rate_default = 0.002;
 // Number of boxes appearing per ms
-var box_rate = 0.002;
+var box_rate;
 
 // Game state
 // The word list we're using
@@ -215,19 +315,25 @@ function setupGameState(game_num)
     
     game_start_time = Date.now();
     last_box_update = null;
+    box_rate = box_rate_default;
 }
 
-function getWordMisses(word_idx)
+function getWordHits(word_idx)
 {
     // Count how many letters each player missed
-    var ret = [0, 0];
+    // Returns [P1 hits, P1 misses, P2 hits, P2 misses]
+    var ret = [0, 0, 0, 0];
     
     for(var i = 0; i < word_list[word_idx].length; i++)
     {
-        if(!letters_typed[word_idx][i])
+        player = word_players[word_idx][i];
+        if(letters_typed[word_idx][i])
         {
-            player = word_players[word_idx][i];
-            ret[player] += 1;
+            ret[2*player] += 1;
+        }
+        else
+        {
+            ret[2*player + 1] += 1;
         }
     }
     return ret;
@@ -264,7 +370,7 @@ const min_speed = 0.002;
 const goal_error_rate = 0.1;
 
 // This is our base update -- set it so we get good speeds without too much time
-const ratio_up = 0.04;
+const ratio_up = 0.015;
 
 // This is the downward update, based on the two above
 const ratio_down = (1 - goal_error_rate) / (goal_error_rate) * ratio_up;
@@ -433,18 +539,20 @@ function displayHangmanWord(str, player, filled, x, y, size)
     }
 }
 
-const game_words_x1 = 50;
-const game_words_x2 = canvas.width/2 + 50;
-const game_words_y = 170;
-const game_words_size = 24;
-const game_words_spacing = 32;
+const game_words_x = 50;
+const game_words_dx = 250;
+const game_words_y = 200;
+const game_words_dy = 26;
+const game_words_size = 20;
+const game_words_per_column = 12;
 
 function displayWords()
 {
-    for(var i = 0; i < word_list.length; i += 2)
+    for(var i = 0; i < word_list.length; i++)
     {
-        var word_x = game_words_x1;
-        var word_y = game_words_y + (i/2)*game_words_spacing;
+        var word_x = game_words_x 
+            + game_words_dx * Math.floor(i / game_words_per_column);
+        var word_y = game_words_y + (i % game_words_per_column)*game_words_dy;
         
         displayHangmanWord(
             word_list[i], 
@@ -454,19 +562,6 @@ function displayWords()
             word_y,
             game_words_size
         );
-        
-        if(i+1 < word_list.length)
-        {
-            word_x = game_words_x2;
-            displayHangmanWord(
-                word_list[i+1], 
-                word_players[i+1], 
-                letters_typed[i+1], 
-                word_x,
-                word_y,
-                game_words_size
-            );
-        }
     }
 }
 
@@ -526,15 +621,17 @@ function handleKeys()
 
 // ----- Game loops
 // Display the final score (and payoffs?)
-const score_header_y = 75;
+const score_header_y = 45;
 const score_ids_x = 80;
 const score_words_x = 100;
-const score_p1_x = 320;
-const score_p2_x = 450;
-const score_value_x = 580;
-const score_words_y = 100;
-const score_words_size = 20;
-const score_words_spacing = 22;
+const score_p1_hits_x = 250;
+const score_p1_miss_x = 350;
+const score_p2_hits_x = 450;
+const score_p2_miss_x = 550;
+const score_value_x = 650;
+const score_words_y = 65;
+const score_words_size = 12;
+const score_words_spacing = 14;
 
 function scoreScreen()
 {
@@ -543,23 +640,30 @@ function scoreScreen()
     // Background
     ctx.clearRect(0, 0, canvas.width, canvas.height);
     
+    // Build string
+    output_str = "";
+    
     ctx.textAlign = "center";
-    ctx.font = "40px Arial";
+    ctx.font = "24px Arial";
     ctx.fillStyle = "#000000";
-    ctx.fillText("Game Over", canvas.width/2, 40);
+    ctx.fillText("Scoreboard", canvas.width/2, 24);
     
     ctx.font = "" + score_words_size + "px Arial";
     ctx.textAlign = "right";
     ctx.fillText("#", score_ids_x, score_header_y);
     ctx.textAlign = "left";
     ctx.fillText("Word", score_words_x, score_header_y);
-    ctx.fillText("P1 Misses", score_p1_x, score_header_y);
-    ctx.fillText("P2 Misses", score_p2_x, score_header_y);
+    ctx.fillText("P1 Hits"  , score_p1_hits_x, score_header_y);
+    ctx.fillText("P1 Misses", score_p1_miss_x, score_header_y);
+    ctx.fillText("P2 Hits"  , score_p2_hits_x, score_header_y);
+    ctx.fillText("P2 Misses", score_p2_miss_x, score_header_y);
     ctx.fillText("Score", score_value_x, score_header_y);
     
     var total_score = 0;
-    var total_p1 = 0;
-    var total_p2 = 0;
+    var total_p1_hits = 0;
+    var total_p1_miss = 0;
+    var total_p2_hits = 0;
+    var total_p2_miss = 0;
     
     var word_x = score_words_x;
     var word_y;
@@ -582,25 +686,51 @@ function scoreScreen()
             score_words_size
         );
         
-        var miss = getWordMisses(i);
+        var hits = getWordHits(i);
         var score = getWordScore(i);
         total_score += score;
-        total_p1 += miss[0];
-        total_p2 += miss[1];
+        total_p1_hits += hits[0];
+        total_p1_miss += hits[1];
+        total_p2_hits += hits[2];
+        total_p2_miss += hits[3];
 
         ctx.fillStyle = "#000000";
-        ctx.fillText("" + miss[0], score_p1_x, word_y);
-        ctx.fillText("" + miss[1], score_p2_x, word_y);
+        ctx.fillText("" + hits[0], score_p1_hits_x, word_y);
+        ctx.fillText("" + hits[1], score_p1_miss_x, word_y);
+        ctx.fillText("" + hits[2], score_p2_hits_x, word_y);
+        ctx.fillText("" + hits[3], score_p2_miss_x, word_y);
         ctx.fillText("" + score, score_value_x, word_y);
+        
+        output_str = 
+            output_str 
+            + (i+1) + ","
+            + hits[0] + ","
+            + hits[1] + ","
+            + hits[2] + ","
+            + hits[3] + ","
+            + score + "\n";
     }
     
     word_y += score_words_spacing * 1.5;
     ctx.textAlign = "right";
-    ctx.fillText("Total:", score_p1_x - 10, word_y);
+    ctx.fillText("Total:", score_p1_hits_x - 10, word_y);
     ctx.textAlign = "left";
-    ctx.fillText("" + total_p1, score_p1_x, word_y);
-    ctx.fillText("" + total_p2, score_p2_x, word_y);
+    ctx.fillText("" + total_p1_hits, score_p1_hits_x, word_y);
+    ctx.fillText("" + total_p1_miss, score_p1_miss_x, word_y);
+    ctx.fillText("" + total_p2_hits, score_p2_hits_x, word_y);
+    ctx.fillText("" + total_p2_miss, score_p2_miss_x, word_y);
     ctx.fillText("" + total_score, score_value_x, word_y);
+    
+    output_str = 
+        output_str
+        + "total,"
+        + total_p1_hits + ","
+        + total_p1_miss + ","
+        + total_p2_hits + ","
+        + total_p2_miss + ","
+        + total_score + "\n";
+    
+    output_box.value = output_str;
     
     return_to_menu = handleKeys();
     if(return_to_menu)
@@ -630,9 +760,9 @@ function gameLoop()
     drawBoxes();
     displayWords();
 
-    ctx.font = "36px Arial";
-    ctx.fillStyle = "#000000";
-    ctx.fillText("Last Key Pressed: " + String.fromCharCode(last_key_num), 450, 390);
+    //ctx.font = "36px Arial";
+    //ctx.fillStyle = "#000000";
+    //ctx.fillText("Last Key Pressed: " + String.fromCharCode(last_key_num), 450, 390);
     
     requestAnimationFrame(gameLoop);
 }
@@ -649,7 +779,7 @@ function runGame(game_number)
 // ----- Main menu screen
 // Strings to write in each of the buttons
 const game_names = [
-    "Single Player",
+    "Training Round",
     "Game 1",
     "Game 2",
     "Game 3"
@@ -662,7 +792,7 @@ var selected_game = 0;
 const button_width = 300;
 const button_height = 40;
 const button_spacing = 30;
-const button_offset = 100;
+const button_offset = 200;
 
 // Display the main menu screen
 function mainMenu()
@@ -683,7 +813,7 @@ function mainMenu()
     ctx.textAlign = "center";
     ctx.font = "48px Arial";
     ctx.fillStyle = "#000000";
-    ctx.fillText("Typing Test", canvas.width/2, 48);
+    ctx.fillText("Typing Test", canvas.width/2, 100);
     
     // Buttons
     for(i = 0; i < game_names.length; i++)
