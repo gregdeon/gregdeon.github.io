@@ -7,6 +7,5 @@ permalink: /blog/
 This is my personal blog. I'll try to use this space to talk about my graduate student experience at Waterloo.
 
 <ul>
-<li> Feb 16, 2018: <a href="/blog/2018-feb-16-how-i-take-advantage-of-lazy-days">How I take advantage of lazy days</a>
+<li> Feb 16, 2018: <a href="/blog/2018-feb-16-how-i-take-advantage-of-lazy-days">How I take advantage of lazy days</a></li>
 </ul>
-
