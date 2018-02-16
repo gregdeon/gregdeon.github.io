@@ -5,8 +5,9 @@ permalink: /projects/
 ---
 
 ## University of Waterloo
-When I start studying at Waterloo, I'll update this page with details about my research. Until then, take a look at [Edith Law's work on crowdsourcing](http://edithlaw.ca/research.html) and [Kate Larson's work on multi-agent systems](https://cs.uwaterloo.ca/~klarson/publications.html).
+I am currently a Master's student at the University of Waterloo. I study crowdsourcing systems and how to make them more effective. In particular, I am interested in making crowdsourcing tasks where multiple workers collaborate in real time. I am currently researching ways to pay workers fairly for working on a team. My research might be best described as computer supported cooperative work, understanding how humans work together and using computer systems to take advantage of this cooperative work.
 
+I work with [CrowdCurio](http://crowdcurio.com/) for my crowdsourcing studies, and my research is closely related to other graduate students' work on CrowdCurio (including [Will Callaghan](http://willcallaghan.ca/), [Mike Schaekermann](https://cs.uwaterloo.ca/~mschaeke/bio-and-research/), and [Alex Williams](http://acw.io/)).
 
 ## Dalhousie University
 While I was studying Computer Engineering at Dalhousie, I had a chance to work on a wide range of projects. Here are a few of them:
@@ -25,6 +26,8 @@ At <a href="http://newae.com/">NewAE Technology</a>, I helped develop the ChipWh
 </td>
 <td><img src="{{ site.baseurl }}/files/cw-lite.jpg"></td>
 </tr></table>
+
+While working at NewAE, I co-authored a paper with [Colin O'Flynn](http://colinoflynn.com/) discussing the implications of side-channel analysis on automotive system design (to appear in the [SAE International Journal of Transportation Cybersecurity and Privacy](https://www.sae.org/publications/collections/content/e-journal-11/) in March 2018).
 
 ### Jeff Dahn Research Group
 <table class="image-text"><tr>
