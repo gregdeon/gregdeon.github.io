@@ -1,18 +1,18 @@
 {% assign current = page.title | downcase %}
 
 <aside>
-	<div class="container">
-		<nav>
-			<ul>
-				<li><a href='/' {% if current == 'about' %}class='current'{% endif %}>Home</a></li>
-				<li><a href='/projects' {% if current == 'projects' %}class='current'{% endif %}>Projects</a></li>
-
-				<li><a href="/files/cv.pdf">CV</a></li>
-			</ul>
-			</li>
-			</ul>
-		</nav>
-	</div>
+<div class="container">
+<nav>
+<ul>
+<li><a href='/' {% if current == 'about' %}class='current'{% endif %}>Home</a></li>
+<li><a href='/projects' {% if current == 'projects' %}class='current'{% endif %}>Projects</a></li>
+<li><a href='/blog' {% if current == 'blog' %}class='current'{% endif %}>Blog</a></li>
+<li><a href="/files/cv.pdf">CV</a></li>
+</ul>
+</li>
+</ul>
+</nav>
+</div>
 </aside>
 
 <header>
