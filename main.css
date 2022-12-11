@@ -1,0 +1,114 @@
+.header-block {
+    background-color: #00003f;
+    color: #ffffff;
+
+    margin-top: 20px;
+    margin-bottom: 20px;
+    padding: 30px;    
+    /*min-height: 120px;*/
+}
+
+.header-block a {
+    color: #ffffff;
+    text-decoration: none;
+}
+
+.header-title {
+    margin-top: 20px;
+    /*padding: 20px;    */
+}
+
+.header-links {
+    /*text-align: center;*/
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.header-email {
+    margin-bottom: 20px;
+}
+
+.headshot {
+    width: 200px;
+}
+
+.body-text {
+    margin-top: 20px;
+    margin-bottom: 20px;
+    font-size: 16px;
+    text-align: justify;
+}
+
+.paragraph {
+    margin-bottom: 1em;
+}
+
+.reference-header h4 {
+    margin-top: 10px;
+}
+
+.reference {
+    margin-bottom: 20px;
+}
+
+/* .paragraph a, .reference a { */
+.paragraph a {
+    color: #425469;
+    font-weight: bold;
+}
+
+
+/* Paper links */
+.reference a, .reference a:visited {
+    color: white;
+    text-decoration: none;
+}
+
+.pdf {
+    background-color: #161;
+}
+
+.pdf::before {
+    content: "📃 ";
+}
+
+.link {
+    background-color: #722;
+}
+
+.link::before {
+    content: "📕 ";
+}
+
+.talk {
+    background-color: #339;
+}
+
+.talk::before {
+    content: "💬 ";
+}
+
+.slides {
+    background-color: purple;
+}
+
+.slides::before {
+    content: "🖥 ";
+}
+
+.video {
+    background-color: teal;
+}
+
+.video::before {
+    content: "🎥 ";
+}
+
+.blog {
+    background-color: orangered;
+}
+
+.blog::before {
+    content: "✍ ";
+}
+
