@@ -65,7 +65,7 @@
 }
 
 .pdf {
-    background-color: #161;
+    background-color: #272;
 }
 
 .pdf::before {
@@ -73,7 +73,7 @@
 }
 
 .link {
-    background-color: #722;
+    background-color: #833;
 }
 
 .link::before {
@@ -81,7 +81,7 @@
 }
 
 .talk {
-    background-color: #339;
+    background-color: #44B;
 }
 
 .talk::before {
@@ -89,26 +89,29 @@
 }
 
 .slides {
-    background-color: purple;
+    background-color: #618;
 }
 
 .slides::before {
-    content: "🖥 ";
+    content: "🖼️ ";
 }
 
 .video {
-    background-color: teal;
+    background-color: #378;
 }
 
 .video::before {
-    content: "🎥 ";
+    content: "🎞️ ";
 }
 
 .blog {
-    background-color: orangered;
+    background-color: #C61;
 }
 
 .blog::before {
     content: "✍ ";
 }
 
+.code {
+    background-color: rgb(156, 64, 156);
+}
