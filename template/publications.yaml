@@ -1,0 +1,103 @@
+Pre-Prints: 
+Conference Papers:
+  - 
+    title: "Better Peer Grading through Bayesian Inference"
+    authors: Hedayat Zarkoob, Greg d'Eon, Lena Podina, Kevin Leyton-Brown
+    venue: AAAI 2023
+    status: to appear
+    arxiv: https://arxiv.org/abs/2209.01242
+    code: https://github.com/hezar1000/mta-inference
+  -
+    title: "The Spotlight: A General Method for Discovering Systematic Errors in Deep Learning Models"
+    authors: Greg d'Eon, Jason d'Eon, James R. Wright, Kevin Leyton-Brown
+    venue: FAccT 2022
+    arxiv: https://arxiv.org/abs/2107.00758
+    code: https://github.com/gregdeon/spotlight
+    official:
+      publisher: ACM
+      url: https://dl.acm.org/doi/10.1145/3531146.3533240
+    talk: https://www.youtube.com/watch?v=PvlpyCQM_dU
+  - 
+    title: Testing Axioms Against Human Reward Divisions in Cooperative Games
+    authors: Greg d'Eon, Kate Larson
+    venue: AAMAS 2020
+    pdf: files/deon-2020-AAMAS-testing_axioms_reward_divisions.pdf
+    official: 
+      url: https://dl.acm.org/doi/10.5555/3398761.3398802
+      publisher: ACM
+    talk: https://underline.io/lecture/480-testing-axioms-against-human-reward-divisions-in-cooperative-games
+    # slides: files/deon-2020-AAMAS-testing_axioms_reward_divisions_slides.pdf
+  - 
+    title: "KeyMap: Improving Keyboard Shortcut Vocabulary Using Norman's Mapping"
+    authors: Blaine Lewis*, Greg d'Eon*, Andy Cockburn, Daniel Vogel
+    venue: CHI 2020
+    pdf: files/lewis-2020-CHI-keymap.pdf
+    code: https://github.com/blainelewis1/keymap
+    official:
+      publisher: ACM
+      url: https://dl.acm.org/doi/10.1145/3313831.3376483
+    talk: https://www.youtube.com/watch?v=7D1IY5dkqo4
+    video: https://www.youtube.com/watch?v=Vtcwc9ZEMd8
+    blog: http://blainelewis.ca/KeyMap
+  - 
+    title: Improving Virtual Reality Ergonomics Through Reach-Bounded Non-Linear Input Amplification
+    authors: Johann Wentzel, Greg d'Eon, Daniel Vogel 
+    venue: CHI 2020
+    award:
+      icon: medal
+      text: Honorable Mention for Best Paper (top 5% of submissions)
+    pdf: files/wentzel-2020-CHI-vr_amplification.pdf
+    official:
+      publisher: ACM
+      url: https://dl.acm.org/doi/abs/10.1145/3313831.3376687
+    talk: https://www.youtube.com/watch?v=6xNxdmjHMEY
+    video: https://www.youtube.com/watch?v=_uOSFIEwDyE
+    blog: http://johannwentzel.ca/projects/vramp/
+  - 
+    title: Paying Crowd Workers for Collaborative Work
+    authors: Greg d'Eon, Joslin Goh, Kate Larson, Edith Law
+    venue: CSCW 2019
+    pdf: files/deon-2019-CSCW-paying_for_collaborative_work.pdf
+    official:
+      publisher: ACM
+      url: https://dl.acm.org/citation.cfm?id=3359227
+    slides: files/deon-2019-CSCW-paying_for_collaborative_work_slides.pdf
+Journal Articles:
+  - 
+    title: "Power Analysis and Fault Attacks against Secure CAN: How Safe Are Your Keys?"
+    authors: Colin O'Flynn, Greg d'Eon
+    venue: SAE International Journal of Transportation Cybersecurity and Privacy, 2018
+    pdf: files/oflynn-2018-SAE-secure_can_attacks.pdf
+    official:
+      publisher: SAE
+      url: https://saemobilus.sae.org/content/11-01-01-0001/
+  - 
+    title: Studies of the Effect of Voltage on the Impedance and Cycling Performance of Li[Ni<sub>0.4</sub>Mn<sub>0.4</sub>Co<sub>0.2</sub>]O<sub>2</sub>/Graphite Lithium-Ion Pouch Cells
+    authors: Kathlyne Nelson, Greg d'Eon, Asher Wright, Lin Ma, Jian Xia, Jeff Dahn
+    venue: Journal of the Electrochemical Society, 2015
+    official: 
+      publisher: JES
+      url: https://iopscience.iop.org/article/10.1149/2.0831506jes
+Peer Reviewed Workshop Papers:
+  -
+    title: The Effects of Single-Player Coalitions on Reward Divisions in Cooperative Games
+    authors: Greg d'Eon, Kate Larson, Edith Law
+    venue: Games, Agents, and Incentives Workshop (AAMAS), 2019
+    pdf: files/deon-2019-GAIW-single_player_coalitions.pdf
+    slides: files/deon-2019-GAIW-single_player_coalitions_slides.pdf
+White Papers:
+  - 
+    title: "I, For One, Welcome Our New Power Analysis Overlords: An Introduction to ChipWhisperer-Lint"
+    authors: Colin O'Flynn, Greg d'Eon
+    venue: Black Hat USA, 2018
+    pdf: https://i.blackhat.com/us-18/Wed-August-8/us-18-OFlynn-I-For-One-Welcome-Our-New-Power-Analysis-Overloards-wp.pdf 
+Master's Thesis:
+  - 
+    title: Applying Fair Reward Divisions to Collaborative Work
+    authors: Greg d'Eon
+    venue: University of Waterloo, 2019
+    pdf: files/deon-2019-thesis-applying_fair_reward_divisions.pdf
+    official:
+      publisher: Link
+      url: https://uwspace.uwaterloo.ca/handle/10012/14811
+    slides: files/deon-2019-thesis-applying_fair_reward_divisions_slides.pdf

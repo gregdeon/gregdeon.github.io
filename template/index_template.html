@@ -1,0 +1,148 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <title>Greg d'Eon</title>
+        <!-- Global site tag (gtag.js) - Google Analytics -->
+    <script async src="https://www.googletagmanager.com/gtag/js?id=UA-134675223-1"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag(){dataLayer.push(arguments);}
+        gtag('js', new Date());
+
+        gtag('config', 'UA-134675223-1');
+    </script>
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-rbsA2VBKQhggwzxH7pPCaAqO46MgnOM80zW1RWuH61DGLwZJEdK2Kadq2F9CUG65" crossorigin="anonymous">
+    <script src="https://kit.fontawesome.com/2b561132ba.js" crossorigin="anonymous"></script>
+    <!-- <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous"> -->
+    <link rel="stylesheet" href="main.css">  
+</head>
+<body>
+    <!-- Title -->
+    <div class="container-fluid text-center header-block">  
+        <div class="container">
+            <div class="row justify-content-md-center">
+                <div class="col-md-6" align="center">
+                    <div class="container">
+                        <div class="row col-12">
+                            <div class="col-12 header-title">
+                                <h1><a href="./index.html">Greg d'Eon</a></h1>
+                            </div>
+                        </div>
+                        <div class="row justify-content-md-center">
+                            <div class="col header-links">
+                                <h5>
+                                    <a href="./files/cv.pdf">
+                                        <i class="fa-solid fa-user"></i> CV
+                                    </a> &nbsp &nbsp
+                                    <a href="https://github.com/gregdeon">
+                                        <i class="fa-brands fa-github"></i> GitHub
+                                    </a> &nbsp &nbsp
+                                    <a href="https://scholar.google.com/citations?user=yzUBfmgAAAAJ&hl=en">
+                                        <i class="fa-solid fa-graduation-cap"></i> Scholar
+                                    </a>
+                                </h5>
+
+                            </div>
+                        </div>
+                        <div class="row col-sm text-center header-email">
+                            <div class="col">
+                                <i class="fa-solid fa-envelope"></i>
+                                greg.l.deon [at] gmail.com
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <img class="headshot rounded-circle" src="./files/profile.jpg" />
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="row justify-content-md-center paragraph">
+            <div class="col col-md-9">
+                <h2>Bio</h2>
+            </div>
+        </div>
+        <div class="row justify-content-md-center paragraph">
+            <div class="col col-md-9">
+                I'm currently a PhD student in the <a href="https://www.cs.ubc.ca">Department of Computer Science</a> at the <a href="https://www.ubc.ca">University of British Columbia</a>. 
+                I'm supervised by <a href="https://www.cs.ubc.ca/~kevinlb/">Kevin Leyton-Brown</a>, and I also work closely with <a href="https://jrwright.info">James R. Wright</a> (<a href="https://www.ualberta.ca/computing-science/">University of Alberta</a>).
+                My research interests span machine learning, statistics, cognitive science, and economics, but my primary focus is in behavioural game theory, where I combine ideas from each of these fields to understand and model how people act in strategic situations.
+            </div>
+        </div>
+
+        <div class="row justify-content-md-center paragraph">
+            <div class="col col-md-9">
+                Previously, I earned a Master's in Computer Science from the <a href="https://uwaterloo.ca">University of Waterloo</a>, where I was co-supervised by <a href="http://edithlaw.ca">Edith Law</a> and <a href="https://cs.uwaterloo.ca/~klarson/">Kate Larson</a>.
+                My research focused on describing fair reward divisions with cooperative game theory and applying them to practical crowdsourcing systems. 
+
+                Before Waterloo, I earned a B.Eng. in Computer Engineering from <a href="https://www.dal.ca/faculty/engineering/electrical.html">Dalhousie University</a>.
+                During my co-op positions, I developed <a href="https://github.com/newaetech/chipwhisperer">open-source tools</a> for side channel analysis and built test equipment for <a href="https://www.dal.ca/diff/dahn.html">researching Li-ion batteries</a>.
+            </div>
+        </div>
+
+        <div class="row justify-content-md-center paragraph">
+            <div class="col col-md-9">
+                My pronouns are he/him.
+            </div>
+        </div>
+    </div>
+    
+    <br/>
+
+    <div class="container body-text">
+        <div class="row justify-content-md-center"><div class="col col-md-9">
+            <h2>Publications</h2>
+        </div></div>        
+
+        {% for publication_type, publication_list in publications.items() %}
+            {% if publication_list %}
+                <div class="row justify-content-md-center reference-header"><div class="col col-md-9">
+                    <h4>{{publication_type}}</h4>
+                </div></div>
+                
+                {% for publication in publication_list %}
+                <div class="row justify-content-md-center reference"><div class="col col-md-9">
+                    <b>{{publication.title}}</b> <br/>
+                    {{ publication.authors.replace("Greg d'Eon", "<b>Greg d'Eon</b>") }} <br/>
+                    {{publication.venue}} {% if publication.status %}<i>({{publication.status}})</i>{% endif %}<br/>
+                    {% if publication.award %}
+                        {%if publication.award.icon == "trophy" %}
+                        🏆
+                        {%elif publication.award.icon == "medal" %}
+                        🏅
+                        {%endif%}
+                        <i>{{publication.award.text}}</i> <br/>
+                    {% endif %}
+                    {% if publication.arxiv %}
+                        <a class="badge rounded-pill pdf" href="{{publication.arxiv}}">ArXiv</a>
+                    {% endif %}
+                    {% if publication.pdf %}
+                    <a class="badge rounded-pill pdf" href="{{publication.pdf}}">PDF</a>
+                    {% endif %}
+                    {% if publication.code %}
+                    <a class="badge rounded-pill code" href="{{publication.code}}"><i class="fa-solid fa-code"></i> Code</a>
+                    {% endif %}
+                    {% if publication.official %}
+                        <a class="badge rounded-pill link" href="{{publication.official.url}}">{{publication.official.publisher}}</a>
+                    {% endif %}
+                    {% if publication.talk %}
+                        <a class="badge rounded-pill talk" href="{{publication.talk}}">Talk</a>
+                        {% endif %}
+                        {% if publication.slides %}
+                        <a class="badge rounded-pill slides" href="{{publication.slides}}">Slides</a>
+                        {% endif %}
+                        {% if publication.blog %}
+                        <a class="badge rounded-pill blog" href="{{publication.blog}}">Blog</a>
+                        {% endif %}
+                    </div></div>
+                    
+                {% endfor %}
+            {% endif %}
+        {% endfor %}
+    </div>
+</body>
+</html>
