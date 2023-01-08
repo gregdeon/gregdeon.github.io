@@ -2,6 +2,7 @@
 Build index.html from publications.
 
 TODO: document keys in publications.yaml
+
 """
 
 import argparse
@@ -19,12 +20,16 @@ parser.add_argument('--debug', action='store_true', help='Debug mode (verbose lo
 
 if __name__ == '__main__':
     args = parser.parse_args()
+
+    # enable debug messages if using debug flag 
     if args.debug:
         logging.getLogger().setLevel(logging.DEBUG)
 
+    # load publications yaml file 
     with open(args.publications, 'r') as f:
         publications = yaml.safe_load(f)
 
+    # debug: print publications by category
     logging.debug(publications)
     for publication_type in publications:
         logging.debug(publication_type)
@@ -32,8 +37,10 @@ if __name__ == '__main__':
             for publication in publications[publication_type]:
                 logging.debug(f"- {publication['title']}")
 
+    # read template
     with open(args.template, 'r', encoding="utf-8") as f:
         template = jinja2.Template(f.read(), trim_blocks=True, lstrip_blocks=True)
 
+    # write file
     with open(args.output, 'w', encoding="utf-8") as f:
         f.write(template.render(publications=publications))

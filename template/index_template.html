@@ -107,7 +107,9 @@
                 {% for publication in publication_list %}
                 <div class="row justify-content-md-center reference"><div class="col col-md-9">
                     <b>{{publication.title}}</b> <br/>
-                    {{ publication.authors.replace("Greg d'Eon", "<b>Greg d'Eon</b>") }} <br/>
+                    {% for author in publication.authors %}
+                        {{author.replace("Greg d'Eon", "<b>Greg d'Eon</b>")}}{{ ", " if not loop.last else "<br/>" }}
+                    {% endfor %}
                     {{publication.venue}} {% if publication.status %}<i>({{publication.status}})</i>{% endif %}<br/>
                     {% if publication.award %}
                         {%if publication.award.icon == "trophy" %}
