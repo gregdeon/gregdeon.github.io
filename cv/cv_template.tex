@@ -57,116 +57,24 @@ greg.l.deon@gmail.com
 
 \heading{Publications}
 \begin{center}
+\BLOCK{for publication_type, publication_list in publications.items()}
+    \BLOCK{if publication_list}
         \begin{tabularx}{\textwidth}{X}
-        \textbf{Conference Papers} \\
+        \textbf{\VAR{publication_type}} \\
 
+        \BLOCK{for publication in publication_list}
             \hangpara{2em}{1}%
-			Hedayat Zarkoob, 
-			\textbf{Greg d'Eon}, 
-			Lena Podina, 
-			and Kevin Leyton-Brown.
-            ``Better Peer Grading through Bayesian Inference.''
-            AAAI 2023 \textit{(to appear)}. 
- \\\\
+            \BLOCK{for author in publication.authors}
+			\VAR{"and " if publication.authors|length > 1 and loop.last else ""}\VAR{author.replace("Greg d'Eon", "\\textbf{Greg d'Eon}").replace("*", "$^*$")}\VAR{ "." if loop.last else ", " if publication.authors|length > 2 else "" }
+            \BLOCK{endfor}
+            ``\VAR{publication.title}.''
+            \VAR{publication.venue}\BLOCK{if publication.status} \textit{(\VAR{publication.status})}\BLOCK{endif}. 
+			\BLOCK{if publication.award} \textit{\VAR{publication.award.text.replace("%", "\%")}.} \BLOCK{endif} \\\\
 
-            \hangpara{2em}{1}%
-			\textbf{Greg d'Eon}, 
-			Jason d'Eon, 
-			James R. Wright, 
-			and Kevin Leyton-Brown.
-            ``The Spotlight: A General Method for Discovering Systematic Errors in Deep Learning Models.''
-            FAccT 2022. 
- \\\\
-
-            \hangpara{2em}{1}%
-			\textbf{Greg d'Eon}
-			and Kate Larson.
-            ``Testing Axioms Against Human Reward Divisions in Cooperative Games.''
-            AAMAS 2020. 
- \\\\
-
-            \hangpara{2em}{1}%
-			Blaine Lewis$^*$, 
-			\textbf{Greg d'Eon}$^*$, 
-			Andy Cockburn, 
-			and Daniel Vogel.
-            ``KeyMap: Improving Keyboard Shortcut Vocabulary Using Norman's Mapping.''
-            CHI 2020. 
- \\\\
-
-            \hangpara{2em}{1}%
-			Johann Wentzel, 
-			\textbf{Greg d'Eon}, 
-			and Daniel Vogel.
-            ``Improving Virtual Reality Ergonomics Through Reach-Bounded Non-Linear Input Amplification.''
-            CHI 2020. 
- \textit{Honorable Mention for Best Paper (top 5\% of submissions).}  \\\\
-
-            \hangpara{2em}{1}%
-			\textbf{Greg d'Eon}, 
-			Joslin Goh, 
-			Kate Larson, 
-			and Edith Law.
-            ``Paying Crowd Workers for Collaborative Work.''
-            CSCW 2019. 
- \\\\
-
+		\BLOCK{endfor}
         \end{tabularx}
-        \begin{tabularx}{\textwidth}{X}
-        \textbf{Journal Articles} \\
-
-            \hangpara{2em}{1}%
-			Colin O'Flynn
-			and \textbf{Greg d'Eon}.
-            ``Power Analysis and Fault Attacks against Secure CAN: How Safe Are Your Keys?.''
-            SAE International Journal of Transportation Cybersecurity and Privacy, 2018. 
- \\\\
-
-            \hangpara{2em}{1}%
-			Kathlyne Nelson, 
-			\textbf{Greg d'Eon}, 
-			Asher Wright, 
-			Lin Ma, 
-			Jian Xia, 
-			and Jeff Dahn.
-            ``Studies of the Effect of Voltage on the Impedance and Cycling Performance of Li[Ni0.4 Mn0.4 Co0.2]O2/Graphite Lithium-Ion Pouch Cells.''
-            Journal of the Electrochemical Society, 2015. 
- \\\\
-
-        \end{tabularx}
-        \begin{tabularx}{\textwidth}{X}
-        \textbf{Peer Reviewed Workshop Papers} \\
-
-            \hangpara{2em}{1}%
-			\textbf{Greg d'Eon}, 
-			Kate Larson, 
-			and Edith Law.
-            ``The Effects of Single-Player Coalitions on Reward Divisions in Cooperative Games.''
-            Games, Agents, and Incentives Workshop (AAMAS), 2019. 
- \\\\
-
-        \end{tabularx}
-        \begin{tabularx}{\textwidth}{X}
-        \textbf{White Papers} \\
-
-            \hangpara{2em}{1}%
-			Colin O'Flynn
-			and \textbf{Greg d'Eon}.
-            ``I, For One, Welcome Our New Power Analysis Overlords: An Introduction to ChipWhisperer-Lint.''
-            Black Hat USA, 2018. 
- \\\\
-
-        \end{tabularx}
-        \begin{tabularx}{\textwidth}{X}
-        \textbf{Master's Thesis} \\
-
-            \hangpara{2em}{1}%
-			\textbf{Greg d'Eon}.
-            ``Applying Fair Reward Divisions to Collaborative Work.''
-            University of Waterloo, 2019. 
- \\\\
-
-        \end{tabularx}
+	\BLOCK{endif}
+\BLOCK{endfor}
 \end{center}
 
 \clearpage
