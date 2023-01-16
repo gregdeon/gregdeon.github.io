@@ -125,6 +125,7 @@ White Papers:
       - Greg d'Eon
     venue: Black Hat USA, 2018
     pdf: https://i.blackhat.com/us-18/Wed-August-8/us-18-OFlynn-I-For-One-Welcome-Our-New-Power-Analysis-Overloards-wp.pdf 
+    hide_in_cv: True
 Master's Thesis:
   - 
     title: Applying Fair Reward Divisions to Collaborative Work
