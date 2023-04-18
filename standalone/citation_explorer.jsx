@@ -1,5 +1,5 @@
 // TODOs:
-// - indicate that papers are loading
+// - sort by multiple columns
 // - add ability to hide papers (put into a "hidden papers" table)
 // - make saving + loading work
 // - "Lose changes" dialog when leaving page
@@ -213,12 +213,28 @@ function PaperTable({paperInfo, selectedPapers, hiddenPapers, numRelatedPapers, 
     );
 }
 
+function StatusBar({message}) {
+    if (message === "") {
+        return null;
+    } else {
+        return (
+            <div className="container-fluid fixed-bottom m-0 p-1">
+                <div className="float-end col-md alert alert-info px-2 py-1 m-2">
+                    <div className="spinner-border spinner-border-sm text-info m-0" role="status"/>
+                    <span className="ms-2 me-0 my-0 p-0">{message}</span>
+                </div>
+            </div>
+        )
+    }
+}
+
 function CitationExplorerApp() {
     // info about the papers
     const [paperInfo, setPaperInfo] = useState({});
     const [numRelatedPapers, setNumRelatedPapers] = useState({});
     const [selectedPapers, setSelectedPapers] = useState([]);
     const [hiddenPapers, setHiddenPapers] = useState([]);
+    const [statusMessage, setStatusMessage] = useState("");
 
     // use an effect to update details about papers when selected list changes
     useEffect(() => {
@@ -271,7 +287,9 @@ function CitationExplorerApp() {
 
     async function addRelated(paper_id) {
         // fetch info about references and citations
+        setStatusMessage("Fetching references...");
         var references = await fetchPaperReferences(paper_id);
+        setStatusMessage("Fetching citations...");
         var citations = await fetchPaperCitations(paper_id);
 
         // add info about related papers
@@ -303,15 +321,19 @@ function CitationExplorerApp() {
                 citation_ids: citations.map(citation => citation.paperId)
             }}
         ));
+        
+        setStatusMessage("");
     }
 
     async function addPaperByID(requested_paper_id) {
+        setStatusMessage("Fetching paper details...");
         var paper = await fetchPaperInfo(requested_paper_id);
         var paper_id = paper.paperId;
 
         setPaperInfo(paperInfo => ({...paperInfo, [paper_id]: paper}));
         setSelectedPapers(selectedPapers => [...selectedPapers, paper_id]);
         // setHiddenPapers(hiddenPapers => hiddenPapers.filter(paper_id => paper_id !== paper_id));
+
         await addRelated(requested_paper_id);
     }
 
@@ -346,6 +368,7 @@ function CitationExplorerApp() {
 
             <PaperTable paperInfo={paperInfo} selectedPapers={selectedPapers} hiddenPapers={hiddenPapers} numRelatedPapers={numRelatedPapers} selectPaper={selectPaper} deselectPaper={deselectPaper} hidePaper={hidePaper} unhidePaper={unhidePaper}
             />
+            <StatusBar message={statusMessage}/>
         </div>
     );
 }
