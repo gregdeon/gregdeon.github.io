@@ -1,10 +1,11 @@
 // TODOs:
-// - sort by multiple columns
 // - add ability to hide papers (put into a "hidden papers" table)
+// - don't double-count edges (e.g., paper A cites B twice, or A and B both cite each other)
 // - make saving + loading work
 // - "Lose changes" dialog when leaving page
 // - autosave + reset (local storage? 5MB limit seems small; maybe enough to just save paper IDs)
 // - error handling for adding a paper by ID
+// - add ability to change max references fetched per paper
 // - handle small screens?
 
 const { useState, useEffect } = React
@@ -69,30 +70,36 @@ function PaperLookup({addPaper}) {
     }
 
     return (
-        <div>
+        <>
             <div>
-                <label htmlFor="add_paper_id">Paper ID</label>
+                <label htmlFor="add_paper_id">Add Paper by ID</label>
             </div>
 
             <div className="input-group">
-                <input type="text" value={paperId} onChange={e => setPaperId(e.target.value)} className="form-control" id="add_paper_id" placeholder="Semantic Scholar ID" aria-describedby="paper_id_help_block"/>
+                <input type="text" 
+                    value={paperId} 
+                    onChange={e => setPaperId(e.target.value)} 
+                    onKeyDown={e => {if(e.key == "Enter"){handleClick()}}}
+                    className="form-control" 
+                    id="add_paper_id" 
+                    placeholder="Semantic Scholar ID" 
+                    aria-describedby="paper_id_help_block"
+                />
                 <button type="button" onClick={handleClick} id="add_paper_button" className="btn btn-outline-primary" >Add Paper</button>
             </div>
 
             <div>
                 <small id="paper_id_help_block" className="form-text text-muted" style={{'whiteSpace': 'pre-line'}}>
-                    Example: a21734255dc92b9ac8de336f2a41bfa77a2e0193
-                    <br/>
-                    TODO: document what kinds of IDs are supported
+                    Example: a21734255dc92b9ac8de336f2a41bfa77a2e0193 <br/> (TODO: document what kinds of IDs are supported)
                 </small>
             </div>
-        </div>
+        </>
     );
 }
 
 function PaperTable({paperInfo, selectedPapers, hiddenPapers, numRelatedPapers, selectPaper, deselectPaper, hidePaper, unhidePaper}) {
-    const [sortColIdx, setSortColIdx] = useState(5);
-    const [sortDirection, setSortDirection] = useState("desc");
+    const [primarySort, setPrimarySort] = useState([5, "desc"]);
+    const [secondarySort, setSecondarySort] = useState([4, "desc"]);
 
     // build columns programmatically
     const columns = [
@@ -116,54 +123,73 @@ function PaperTable({paperInfo, selectedPapers, hiddenPapers, numRelatedPapers, 
         {
             name: "Year",
             value: (paper_id) => paperInfo[paper_id].year,
-            width: '4em',
+            width: '3.5em',
         },
         {
             name: "Citations",
             value: (paper_id) => paperInfo[paper_id].citationCount,
-            width: '6em',
+            width: '5em',
         },
         {
             name: "Edges",
             value: (paper_id) => numRelatedPapers[paper_id],
-            width: '5em',
+            width: '4em',
         },
         // Special column: link to paper
     ];
 
-    function updateSort(newSortColIdx) {
-        console.log("updateSort", newSortColIdx, sortColIdx, sortDirection)
-        if (newSortColIdx === sortColIdx) {
-            setSortDirection(sortDirection === "asc" ? "desc" : "asc");
-        } else {
-            setSortColIdx(newSortColIdx);
-            setSortDirection("desc");
-        }
-        console.log("updateSort done", newSortColIdx, sortColIdx, sortDirection)
-    }
-
-    function sortPapers(paper_ids, sortColIdx, sortDirection) {
+    function sortPapers(paper_ids, [primarySortIdx, primarySortDirection], [secondarySortIdx, secondarySortDirection]) {
         // sort papers by selected sort column
         paper_ids.sort((a, b) => {
             const id_a = paperInfo[a].paperId;
             const id_b = paperInfo[b].paperId;
 
-            const val_a = columns[sortColIdx].value(a);
-            const val_b = columns[sortColIdx].value(b);
-
-            if (val_a === val_b) {
-                return 0;
-            } else {
-                return (val_a < val_b ? -1 : 1) * (sortDirection === "asc" ? 1 : -1);
+            // make primary comparison
+            const primary_a = columns[primarySortIdx].value(id_a);
+            const primary_b = columns[primarySortIdx].value(id_b);
+            if (primary_a !== primary_b) {
+                return (primary_a < primary_b ? -1 : 1) * (primarySortDirection === "asc" ? 1 : -1);
             }
+
+            // otherwise, compare by secondary column
+            const secondary_a = columns[secondarySortIdx].value(a);
+            const secondary_b = columns[secondarySortIdx].value(b);
+            if (secondary_a !== secondary_b) {
+                return (secondary_a < secondary_b ? -1 : 1) * (secondarySortDirection === "asc" ? 1 : -1);
+            }
+
+            // if no difference, a and b are equal
+            return 0;
         });
         return paper_ids;
     }
+
+    const sort_options = columns.flatMap((column, idx) => [
+        <option key={2*idx}   value={JSON.stringify([idx, 'desc'])}>{column.name} ↓</option>,
+        <option key={2*idx+1} value={JSON.stringify([idx, 'asc' ])}>{column.name} ↑</option>,
+    ])
 
     // sort papers by selected sort column
     var paper_ids = Object.keys(paperInfo);
 
     return (
+        <>
+        <form>
+            <div className="row">
+                <div className="mb-3 col-md-4">
+                    <label htmlFor="primarySort" className="text-muted"><small>Primary sort</small></label>
+                    <select className="form-control form-select col-sm" id="primarySort" value={JSON.stringify(primarySort)} onChange={e => setPrimarySort(JSON.parse(e.target.value))}>
+                        {sort_options}
+                    </select>
+                </div>
+                <div className="mb-3 col-md-4">
+                    <label htmlFor="secondarySort" className="text-muted"><small>Secondary sort</small></label>
+                    <select className="form-control form-select col-sm" id="secondarySort" value={JSON.stringify(secondarySort)} onChange={e => setSecondarySort(JSON.parse(e.target.value))}>
+                        {sort_options}
+                    </select>
+                </div>
+            </div>
+        </form>
         <table className="table sorted-table" id="paper_table">
             <thead>
                 <tr>
@@ -171,16 +197,14 @@ function PaperTable({paperInfo, selectedPapers, hiddenPapers, numRelatedPapers, 
                     <th className="no-sort table-icon"></th>
                     {columns.map((column, index) => {
                         return (
-                            <th key={index} scope="col" style={{width: column.width, maxWidth: column.maxWidth}} onClick={() => updateSort(index)} className={ 
-                                `${(sortColIdx === index) && (sortDirection === "asc") ? "sort-asc" : ""} ${(sortColIdx === index) && (sortDirection === "desc") ? "sort-desc" : ""} `
-                            }>{column.name}</th>
+                            <th key={index} scope="col" style={{width: column.width, maxWidth: column.maxWidth}}>{column.name}</th>
                         );
                     })}
                     <th scope="col" className="no-sort table-icon" style={{width: '2em'}}>Link</th>
                 </tr>
             </thead>
             <tbody>
-                {sortPapers(paper_ids, sortColIdx, sortDirection).map(paper_id => {
+                {sortPapers(paper_ids, primarySort, secondarySort).map(paper_id => {
                     const paper = paperInfo[paper_id];
                     return (
                         <tr key={paper_id} className={selectedPapers.includes(paper_id) ? "selected-paper" : ""}>
@@ -194,8 +218,8 @@ function PaperTable({paperInfo, selectedPapers, hiddenPapers, numRelatedPapers, 
                                 {hiddenPapers.includes(paper_id)
                                     ? <span onClick={() => unhidePaper(paper_id)}>🚫</span>
                                     : selectedPapers.includes(paper_id)
-                                        ? ""
-                                        : <span onClick={() => hidePaper(paper_id)}>🚫</span>
+                                    ? ""
+                                    : <span onClick={() => hidePaper(paper_id)}>🚫</span>
                                 }
                             </td>
                             <td>{paper.title}</td>
@@ -210,6 +234,7 @@ function PaperTable({paperInfo, selectedPapers, hiddenPapers, numRelatedPapers, 
                 })}
             </tbody>
         </table>
+        </>
     );
 }
 
@@ -219,10 +244,10 @@ function StatusBar({message}) {
     } else {
         return (
             <div className="container-fluid fixed-bottom m-0 p-1">
-                <div className="float-end col-md alert alert-info px-2 py-1 m-2">
-                    <div className="spinner-border spinner-border-sm text-info m-0" role="status"/>
-                    <span className="ms-2 me-0 my-0 p-0">{message}</span>
-                </div>
+            <div className="float-end col-md alert alert-info px-2 py-1 m-2">
+            <div className="spinner-border spinner-border-sm text-info m-0" role="status"/>
+            <span className="ms-2 me-0 my-0 p-0">{message}</span>
+            </div>
             </div>
         )
     }
@@ -351,16 +376,18 @@ function CitationExplorerApp() {
 
     function hidePaper(id_to_hide) {
         // mark a paper as hidden
+        alert("🚧 Under construction");
         // setHiddenPapers(hiddenPapers => [...hiddenPapers, id_to_hide]);
     }
 
     function unhidePaper(id_to_unhide) {
         // mark a paper as unhidden
+        alert("🚧 Under construction");
         // setHiddenPapers(hiddenPapers => hiddenPapers.filter(paper_id => paper_id !== id_to_unhide));
     }
 
     return (
-        <div>
+        <>
             <h1 style={{'fontWeight':'lighter'}}>Citation Explorer</h1>
         
             <LoadSaveButtons />
@@ -369,7 +396,7 @@ function CitationExplorerApp() {
             <PaperTable paperInfo={paperInfo} selectedPapers={selectedPapers} hiddenPapers={hiddenPapers} numRelatedPapers={numRelatedPapers} selectPaper={selectPaper} deselectPaper={deselectPaper} hidePaper={hidePaper} unhidePaper={unhidePaper}
             />
             <StatusBar message={statusMessage}/>
-        </div>
+        </>
     );
 }
 
