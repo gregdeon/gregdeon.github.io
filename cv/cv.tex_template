@@ -1,0 +1,244 @@
+\documentclass{article}
+
+\usepackage[margin=1in]{geometry}
+\usepackage{enumitem} 
+\usepackage{tabularx}
+\usepackage{hanging} % Hanging indents for citation
+\usepackage{opensans} % Pretty fonts!
+
+\renewcommand{\familydefault}{\sfdefault}
+\setlength\parindent{0in} % Remove indents
+\setlist[itemize]{topsep=3pt, itemsep=-1pt} % Change spacing in itemize
+\pagenumbering{gobble} % Turn off page numbering
+
+% Make ourselves a heading command
+\newcommand{\heading}[1]
+{
+	\vspace{3pt}
+	\textbf{#1} 
+	\vspace{-6pt}
+	
+	\rule{\linewidth}{0.4pt}
+}
+
+\begin{document}
+\begin{center}
+{\Large\textbf{Greg d'Eon}}
+
+\vspace{0.2cm}
+Vancouver, BC ~ $\bullet$ ~ 
+% (902) 293-9255 ~ $\bullet$ ~
+greg.l.deon@gmail.com
+
+\end{center}
+
+
+\heading{Education}
+\begin{center}
+\begin{tabularx}{\textwidth}{Xr}
+    \textbf{University of British Columbia} & Sept 2019 -- present \\
+    PhD in Computer Science \\
+    Advisors: Kevin Leyton-Brown, James Wright (UAlberta) \\
+    \\
+
+	\textbf{University of Waterloo}	& Sept 2017 -- Aug 2019 \\
+	Master's of Mathematics (Computer Science) \\
+	Advisors: Edith Law, Kate Larson \\
+% 	GPA: 98.25 / 100 \\
+	\\
+\end{tabularx}
+\begin{tabularx}{\textwidth}{Xr}
+	\textbf{Dalhousie University}	& Sept 2012 -- Dec 2016 \\
+	Bachelor of Computer Engineering \\
+% 	GPA (Bachelor, 2014-2016): 4.26 / 4.30  \\
+% 	GPA (Diploma, 2012-2014): 4.30 / 4.30  \\
+\end{tabularx}
+\end{center}
+
+\heading{Publications}
+\begin{center}
+\BLOCK{for publication_type, publication_list in publications.items()}
+    \BLOCK{if publication_list|rejectattr("hide_in_cv")|list|length > 0}
+	\begin{tabularx}{\textwidth}{X}
+		\textbf{\VAR{publication_type}} \\
+        \BLOCK{for publication in publication_list | rejectattr("hide_in_cv")}
+            \hangpara{2em}{1}%
+            \BLOCK{for author in publication.authors}
+			\VAR{"and " if publication.authors|length > 1 and loop.last else ""}\VAR{author.replace("Greg d'Eon", "\\textbf{Greg d'Eon}").replace("*", "$^*$")}\VAR{ "." if loop.last else ", " if publication.authors|length > 2 else "" }
+            \BLOCK{endfor}
+            ``\VAR{publication.title}.''
+			\BLOCK{if publication.venue}\VAR{publication.venue}\BLOCK{if publication.status} \textit{(\VAR{publication.status})}\BLOCK{endif}. \BLOCK{endif}
+			\BLOCK{if publication.award} \textit{\VAR{publication.award.text.replace("%", "\%")}.} \BLOCK{endif} \\\\
+
+		\BLOCK{endfor}
+        \end{tabularx}
+	\BLOCK{endif}
+\BLOCK{endfor}
+\end{center}
+
+\clearpage
+\heading{Work Experience}
+\begin{center}
+	\begin{tabularx}{\textwidth}{Xr}
+		\textbf{Auctionomics}		& October 2020 -- present \\
+		Software Consultant
+	\end{tabularx}
+	\end{center}
+	\begin{itemize}
+		\item Creating simulation tools to help clients analyze the game-theoretic robustness of their bidding strategies in high-stakes auctions.
+	\end{itemize}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{Xr}
+	\textbf{NewAE Technology}		& Jan 2017 -- Aug 2017; May 2016 -- Aug 2016 \\
+	Software Engineer
+\end{tabularx}
+\end{center}
+\begin{itemize}
+	\item Developed open-source software for the ChipWhisperer platform using Python, C, and Verilog, adding software features and a wide range of sample firmware.
+	\item Wrote tutorials and helped to deliver training courses for the ChipWhisperer software, including a 30-student course at Black Hat USA.
+\end{itemize}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{Xr}
+	\textbf{Dalhousie University}	& Sept 2015 -- Dec 2015 \\
+	Research Assistant with Dr. Guy Kember
+\end{tabularx}
+\end{center}
+\begin{itemize}
+	\item Developed efficient algorithms for simulating head impacts, using a combination of finite element methods and partial differential equations adapted from existing work on acoustics.
+\end{itemize}
+
+\begin{center}
+\begin{tabularx}{\textwidth}{Xr}
+	\textbf{Dalhousie University}	& 
+	Jan 2014 -- Apr 2015; May 2014 -- Aug 2014 \\
+	Research Assistant with Dr. Jeff Dahn
+\end{tabularx}
+\end{center}
+\begin{itemize}
+	\item Designed and built inexpensive battery testing equipment and software to emulate commercial lab equipment, allowing faster and more efficient data collection.
+\end{itemize}
+
+\heading{Awards}
+\begin{tabularx}{\textwidth}{X}
+    Scholarships \\
+\end{tabularx}
+\begin{itemize}
+\item 2019 NSERC CGS-D -- \$105,000 over 3 years
+\item 2019 UBC 4-Year Fellowship -- \$72,800 over 4 years (declined 2019-2022 to accept NSERC)
+\item 2018 Ontario Graduate Scholarship -- \$15,000
+\item 2018 Waterloo President's Graduate Scholarship -- \$5,000
+\item 2017 NSERC CGS-M -- \$1,7500
+\item 2017 Waterloo President's Graduate Scholarship -- \$10,000
+% \item 2016 Dalhousie In-Course Scholarship -- \$2,000
+\item 2014 John G.~Bruce Scholarship -- \$10,000 (renewed 2015)
+% \item 2014 Walter~P.~Copp Memorial Prize -- \$400
+\item 2012 Dalhousie Entrance Scholarship -- \$5,000 (renewed 2013 -- 2015)
+\end{itemize}
+\begin{tabularx}{\textwidth}{X}
+    Distinctions \\
+\end{tabularx}
+\begin{itemize}
+\item 2018 Distinguished Teaching Assistantship Award -- Waterloo Computer Science
+\item 2017 Dalhousie University Medal -- Top Academic Standing, Computer Engineering
+\item 2017 IEEE Atlantic Section Medal -- Top Academic Standing, Computer Engineering
+\item 2014 Kenneth Marginson Award -- Top Academic Standing, Class of Engineering
+\item 2014 Bob Walter Award -- Student Vote, Class of Engineering 
+% \item 2012 Governor General's Award -- Top Academic Standing, Prince Andrew High
+\end{itemize}
+
+\clearpage
+
+\heading{Teaching Experience}
+\begin{tabularx}{\textwidth}{X}
+	Instructional Assistant
+\end{tabularx}
+\begin{itemize}
+	\item Duties included designing course syllabi, lectures, assignments, and tests; teaching lectures and lab sessions; managing class discussions; holding office hours; maintaining peer grading software; and marking assignments and tests. \\~\\
+	\begin{tabularx}{\linewidth}{Xr}
+		\textbf{University of British Columbia:}	\\
+		Modelling Human Strategic Behaviour (CPSC 532) & Jan -- Apr 2022 \\
+		Computers and Society (CPSC 430) & Jan -- Apr 2021 \\
+		Computers and Society (CPSC 430) & Sept -- Dec 2021 \\
+		Introduction to Cognitive Systems (COGS 200) & Sept -- Dec 2020 \\
+		\\
+		\textbf{University of Waterloo:}	\\
+		Human-Computer Interaction (CS 449) & May -- Aug 2019 \\
+		Intro to Computer Programming 1 (CS105) & Jan -- Apr 2019 \\
+		Intro to Computer Programming 1 (CS105) & Sept -- Dec 2018 \\
+		Human-Computer Interaction (CS449) & May -- Aug 2018 \\
+		Intro to Computer Programming 2 (CS106) & Jan -- Apr 2018 \\
+		Intro to Computer Programming 1 (CS105) & Sept -- Dec 2017 \\
+		\\
+		\textbf{Dalhousie University:}	\\
+		C++ Programming (ENGM3282) & Sept -- Dec 2016 \\ 
+		C Programming (ENGM1081) & Sept -- Dec 2015 \\
+	\end{tabularx} ~\\
+\end{itemize}
+
+Teaching Assistant
+\begin{itemize}
+	\item Duties included grading up to 120 assignments or 100 tests each week. \\~\\
+	\begin{tabularx}{\linewidth}{Xr}
+		\textbf{Dalhousie University:}	\\
+		Vector Calculus (ENGM2101) & May -- Aug 2016 \\
+		C++ Programming (ENGM3282) & Sept -- Dec 2015 \\
+		C Programming (ENGM1081) & Sept -- Dec 2014 \\
+		Differential Equations (ENGM2022) & Jan -- Apr 2015 \\
+		Linear Algebra (ENGM1041) & Jan -- Apr 2014 \\
+		C Programming (ENGM1081) & Sept -- Dec 2013 \\
+	\end{tabularx} ~\\
+\end{itemize}
+
+% \begin{tabularx}{\textwidth}{Xr}
+% 	\textbf{Dalhousie University}	&
+% 	Sept. 2013 -- May 2016 \\
+% 	Private Tutor
+% \end{tabularx}
+% \begin{itemize}
+% 	\item Tutored first- and second-year students in a variety of groups, ranging from individual tutoring to lecture-style discussions with 30 students
+% 	\item Courses tutored include engineering physics, chemistry, design, and mathematics, with a heavy emphasis on Vector Calculus and Differential Equations
+% \end{itemize}
+
+\heading{Academic Service}
+Conference reviewing:
+\begin{itemize}
+	\item ICLR 2023
+	\item EC 2022
+	\item NeurIPS 2021 (workshops)
+    \item CHI 2018 (late-breaking work track), 2019, 2022
+    \item CSCW 2019
+\end{itemize}
+
+Conference volunteering roles:
+\begin{itemize}
+	\item NeurIPS Women in Machine Learning (WiML) workshop: 2019, 2020
+\end{itemize}
+\clearpage
+
+\heading{Extra-curricular Involvement}
+\begin{center}
+\begin{tabularx}{\textwidth}{Xr}
+	\textbf{Formula SAE}	& 
+	Sept 2013 -- May 2017 \\
+	Dalhousie University
+\end{tabularx}
+\end{center}
+\begin{itemize}
+	\item May 2016 -- May 2017: Team captain
+	\begin{itemize}
+		\item Led 50+ students in a hierarchical team structure
+		\item Responsible as the face of the team, directing meetings with system leads, working on recruitment and sponsorships, and upkeeping the team's social media
+		\item Contributed heavily to multiple areas of the team, providing technical help to the suspension system and temporarily leading the powertrain system
+	\end{itemize}
+	\item Sept 2015 -- April 2016: Electrical system lead
+	\begin{itemize}
+		\item Led a group of 10 engineering students, managing tasks on tight deadlines
+		\item Used professional engineering software to design and build wiring systems for a new engine, including work on an electronic shifter
+	\end{itemize}
+	\item Sept 2014 -- August 2015: Electrical system member
+	\item Sept 2013 -- August 2014: Aerodynamics system member
+\end{itemize}
+
+\end{document}
