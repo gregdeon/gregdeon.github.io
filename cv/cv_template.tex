@@ -67,7 +67,7 @@ greg.l.deon@gmail.com
 			\VAR{"and " if publication.authors|length > 1 and loop.last else ""}\VAR{author.replace("Greg d'Eon", "\\textbf{Greg d'Eon}").replace("*", "$^*$")}\VAR{ "." if loop.last else ", " if publication.authors|length > 2 else "" }
             \BLOCK{endfor}
             ``\VAR{publication.title}.''
-            \VAR{publication.venue}\BLOCK{if publication.status} \textit{(\VAR{publication.status})}\BLOCK{endif}. 
+			\BLOCK{if publication.venue}\VAR{publication.venue}\BLOCK{if publication.status} \textit{(\VAR{publication.status})}\BLOCK{endif}. \BLOCK{endif}
 			\BLOCK{if publication.award} \textit{\VAR{publication.award.text.replace("%", "\%")}.} \BLOCK{endif} \\\\
 
 		\BLOCK{endfor}

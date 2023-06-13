@@ -2,4 +2,5 @@
 .sass-cache
 _site
 cv/aux_files
+cv/build
 *.fls
