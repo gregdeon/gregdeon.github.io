@@ -1,4 +1,12 @@
 Pre-Prints: 
+  -
+    title: "Loss Functions for Behavioral Game Theory"
+    authors:
+      - Greg d'Eon
+      - Sophie Greenwood
+      - Kevin Leyton-Brown
+      - James R. Wright
+    arxiv: https://arxiv.org/abs/2306.04778
 Conference Papers:
   - 
     title: "Better Peer Grading through Bayesian Inference"
@@ -16,8 +24,8 @@ Conference Papers:
     authors: 
       - Greg d'Eon
       - Jason d'Eon
-      - James R. Wright
       - Kevin Leyton-Brown
+      - James R. Wright
     venue: FAccT 2022
     arxiv: https://arxiv.org/abs/2107.00758
     code: https://github.com/gregdeon/spotlight

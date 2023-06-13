@@ -110,36 +110,38 @@
                     {% for author in publication.authors %}
                         {{author.replace("Greg d'Eon", "<b>Greg d'Eon</b>")}}{{ ", " if not loop.last else "<br/>" }}
                     {% endfor %}
-                    {{publication.venue}} {% if publication.status %}<i>({{publication.status}})</i>{% endif %}<br/>
+                    {% if publication.venue %}
+                        {{publication.venue}} {% if publication.status %}<i>({{publication.status}})</i>{% endif %}<br/>
+                    {% endif %}
                     {% if publication.award %}
                         {%if publication.award.icon == "trophy" %}
                         🏆
                         {%elif publication.award.icon == "medal" %}
                         🏅
-                        {%endif%}
+                        {% endif %}
                         <i>{{publication.award.text}}</i> <br/>
                     {% endif %}
                     {% if publication.arxiv %}
-                        <a class="badge rounded-pill pdf" href="{{publication.arxiv}}">ArXiv</a>
+                        <a class="badge rounded-pill pdf" href="{{publication.arxiv}}" target="_blank">ArXiv</a>
                     {% endif %}
                     {% if publication.pdf %}
-                    <a class="badge rounded-pill pdf" href="{{publication.pdf}}">PDF</a>
+                    <a class="badge rounded-pill pdf" href="{{publication.pdf}}" target="_blank">PDF</a>
                     {% endif %}
                     {% if publication.code %}
-                    <a class="badge rounded-pill code" href="{{publication.code}}"><i class="fa-solid fa-code"></i> Code</a>
+                    <a class="badge rounded-pill code" href="{{publication.code}}" target="_blank"><i class="fa-solid fa-code"></i> Code</a>
                     {% endif %}
                     {% if publication.official %}
-                        <a class="badge rounded-pill link" href="{{publication.official.url}}">{{publication.official.publisher}}</a>
+                        <a class="badge rounded-pill link" href="{{publication.official.url}}" target="_blank">{{publication.official.publisher}}</a>
                     {% endif %}
                     {% if publication.talk %}
-                        <a class="badge rounded-pill talk" href="{{publication.talk}}">Talk</a>
-                        {% endif %}
-                        {% if publication.slides %}
-                        <a class="badge rounded-pill slides" href="{{publication.slides}}">Slides</a>
-                        {% endif %}
-                        {% if publication.blog %}
-                        <a class="badge rounded-pill blog" href="{{publication.blog}}">Blog</a>
-                        {% endif %}
+                        <a class="badge rounded-pill talk" href="{{publication.talk}}" target="_blank">Talk</a>
+                    {% endif %}
+                    {% if publication.slides %}
+                        <a class="badge rounded-pill slides" href="{{publication.slides}}" target="_blank">Slides</a>
+                    {% endif %}
+                    {% if publication.blog %}
+                        <a class="badge rounded-pill blog" href="{{publication.blog}}" target="_blank">Blog</a>
+                    {% endif %}
                     </div></div>
                     
                 {% endfor %}
