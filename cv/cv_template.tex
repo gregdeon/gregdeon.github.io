@@ -15,7 +15,7 @@
 \newcommand{\heading}[1]
 {
 	\vspace{3pt}
-	\textbf{#1} 
+	{\bf #1} 
 	\vspace{-6pt}
 	
 	\rule{\linewidth}{0.4pt}
@@ -55,7 +55,7 @@ greg.l.deon@gmail.com
 \end{tabularx}
 \end{center}
 
-\heading{Publications}
+\heading{Computer Science Publications}
 \begin{center}
 \BLOCK{for publication_type, publication_list in publications.items()}
     \BLOCK{if publication_list|rejectattr("hide_in_cv")|list|length > 0}

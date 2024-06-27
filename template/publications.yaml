@@ -1,13 +1,30 @@
 Pre-Prints: 
+Conference Papers:
   -
-    title: "Loss Functions for Behavioral Game Theory"
+    title: Understanding Iterative Combinatorial Auction Designs via Multi-Agent Reinforcement Learning
+    authors:
+      - Greg d'Eon
+      - Neil Newman
+      - Kevin Leyton-Brown
+    venue: EC 2024
+    code: https://github.com/newmanne/open-spiel
+    arxiv: https://arxiv.org/abs/2402.19420
+    status: to appear
+  -
+    title: "How to Evaluate Behavioral Models"
     authors:
       - Greg d'Eon
       - Sophie Greenwood
       - Kevin Leyton-Brown
       - James R. Wright
+    venue: AAAI 2024
     arxiv: https://arxiv.org/abs/2306.04778
-Conference Papers:
+    award:
+      icon: medal
+      text: Oral Presentation (2% of submissions)
+    official:
+      publisher: AAAI
+      url: https://ojs.aaai.org/index.php/AAAI/article/download/28820/29563
   - 
     title: "Better Peer Grading through Bayesian Inference"
     authors: 
@@ -16,9 +33,11 @@ Conference Papers:
       - Lena Podina
       - Kevin Leyton-Brown
     venue: AAAI 2023
-    status: to appear
     arxiv: https://arxiv.org/abs/2209.01242
     code: https://github.com/hezar1000/mta-inference
+    official:
+      publisher: AAAI
+      url: https://ojs.aaai.org/index.php/AAAI/article/view/25757/25529
   -
     title: "The Spotlight: A General Method for Discovering Systematic Errors in Deep Learning Models"
     authors: 
@@ -102,6 +121,7 @@ Journal Articles:
     official:
       publisher: SAE
       url: https://saemobilus.sae.org/content/11-01-01-0001/
+    hide_in_cv: True
   - 
     title: Studies of the Effect of Voltage on the Impedance and Cycling Performance of Li[Ni0.4 Mn0.4 Co0.2]O2/Graphite Lithium-Ion Pouch Cells
     authors: 
@@ -115,6 +135,7 @@ Journal Articles:
     official: 
       publisher: JES
       url: https://iopscience.iop.org/article/10.1149/2.0831506jes
+    hide_in_cv: True
 Peer Reviewed Workshop Papers:
   -
     title: The Effects of Single-Player Coalitions on Reward Divisions in Cooperative Games
