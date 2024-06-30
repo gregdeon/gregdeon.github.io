@@ -1,6 +1,5 @@
 // TODOs:
 // - don't double-count edges (e.g., paper A cites B twice, or A and B both cite each other)
-// - make saving + loading work
 // - make change log scrollable
 // - "Lose changes" dialog when leaving page
 // - autosave + reset (local storage? 5MB limit seems small; maybe enough to just save paper IDs)
@@ -8,7 +7,7 @@
 // - add ability to change max references fetched per paper
 // - handle small screens?
 
-const { useState, useEffect } = React
+const { useState, useEffect, useRef } = React;
 
 const PAPER_FIELDS = ["url", "title", "venue", "year", "authors", "citationCount"].join();
 const MAX_REFERENCES_PER_PAPER = 200; // max = 1000
@@ -168,19 +167,24 @@ function StatusBar({ message, errorMessage }) {
     }
 }
 
-function LoadSaveButtons() {
-    function load() {
-        alert("🚧 Under construction");
-    }
+function LoadSaveButtons({ savefunc, loadfunc }) {
+    const inputFile = useRef(null);
 
-    function save() {
-        alert("🚧 Under construction");
+    const onLoadButtonClick = () => {
+        inputFile.current.click();
+    };
+
+    function loadFile(e) {
+        const reader = new FileReader();
+        reader.onload = (e) => loadfunc(JSON.parse(e.target.result));
+        reader.readAsText(e.target.files[0]);
     }
 
     return (
         <div>
-            <button type="button" className="btn btn-primary" onClick={load}>Load</button>
-            <button type="button" className="btn btn-primary" onClick={save}>Save</button>
+            <input type="file" id="file" ref={inputFile} style={{ display: "none" }} onChange={loadFile} />
+            <button type="button" className="btn btn-primary me-1" onClick={onLoadButtonClick}>Load</button>
+            <button type="button" className="btn btn-primary me-1" onClick={savefunc}>Save</button>
         </div>
     );
 }
@@ -423,6 +427,29 @@ function CitationExplorerApp() {
         }
     }
 
+    function save() {
+        var tmp_link = document.createElement("a");
+        var file = new Blob(
+            [JSON.stringify(selectedPapers)],
+            {type: "application/json"}
+        );
+        tmp_link.href = URL.createObjectURL(file);
+        tmp_link.download = `citation_explorer_${new Date().toISOString()}.json`;
+        tmp_link.click();
+    }
+
+    async function load(newSelectedPapers) {
+        setPaperInfo({});
+        setNumRelatedPapers({});
+        setSelectedPapers([]);
+        setHiddenPapers([]);
+        console.log("Loading papers: " + newSelectedPapers);
+
+        for (const paper_id of newSelectedPapers) {
+            await addPaperByID(paper_id);
+        }
+    }
+
     // use an effect to update details about papers when selected list changes
     useEffect(() => {
         updateNumRelatedPapers(selectedPapers);
@@ -578,7 +605,7 @@ function CitationExplorerApp() {
         
             <ChangeLog/>
 
-            <LoadSaveButtons />
+            <LoadSaveButtons savefunc={save} loadfunc={load} />
             <PaperLookup addPaper={addPaperByID}/>
 
             <PaperTable paperInfo={paperInfo} selectedPapers={selectedPapers} hiddenPapers={hiddenPapers} numRelatedPapers={numRelatedPapers} selectPaper={selectPaper} deselectPaper={deselectPaper} hidePaper={hidePaper} unhidePaper={unhidePaper}
