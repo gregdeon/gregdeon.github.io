@@ -22,25 +22,58 @@ function makePaper(paper_info) {
     };
 }
 
+async function fetchRetry({url, max_retries = 4, delay = 500, callback = null}) {
+    for (let i = 0; i < max_retries; i++) {
+        try {
+            // SemanticScholar does not set correct CORS headers when rate limiting (429, Too many requests),
+            // which will throw an exception rather than a normal response.
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                if (response.status === 429) {
+                    // In case they fix the CORS headers, throw to still trigger the retry mechanism.
+                    throw new Error("Too many requests");
+                }
+            }
+
+            return response;
+        } catch (error) {
+            console.info(
+                `Encountered error, most likely hitting the rate limit. Trying again in ${delay} ms.`,
+            );
+            console.info(error);
+            callback?.(delay);
+            await new Promise((r) => setTimeout(r, delay));
+            delay *= 2;
+        }
+    }
+    callback?.(null);
+}
+
 // ----- API calls ------------------------------------------------------------
 // see https://api.semanticscholar.org/api-docs/graph#tag/Paper-Data for API documentation
-async function fetchPaperInfo(paper_id) {
+async function fetchPaperInfo(paper_id, callback = null) {
     // fetch details about a single paper
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}?fields=${PAPER_FIELDS}`);
+    const response = await fetchRetry({
+        url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}?fields=${PAPER_FIELDS}`,
+        callback: callback,
+    });
 
     if (response.ok) {
-        const paper_info = response.json();
+        const paper_info = await response.json();
         return makePaper(paper_info);
     } else {
         return null;
     }
 }
 
-async function fetchPaperCitations(paper_id) {
+async function fetchPaperCitations(paper_id, callback = null) {
     // return a list of papers that cite the given paper
     // TODO: handle pagination
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}/citations?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`);
-
+    const response = await fetchRetry({
+        url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/citations?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`,
+        callback: callback,
+    });
     if (response.ok) {
         const citations = await response.json();
         return citations["data"].map((citation) => makePaper(citation.citingPaper));
@@ -49,9 +82,12 @@ async function fetchPaperCitations(paper_id) {
     }
 }
 
-async function fetchPaperReferences(paper_id) {
+async function fetchPaperReferences(paper_id, callback = null) {
     // return a list of papers that are referenced by the given paper
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}/references?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`);
+    const response = await fetchRetry({
+        url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/references?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`,
+        callback: callback,
+    });
     if (response.ok) {
         const references = await response.json();
         return references["data"].map((reference) =>
@@ -368,13 +404,23 @@ function CitationExplorerApp() {
     const [errorMessage, setErrorMessage] = useState("");
 
     function info(message) {
+        console.info(message);
         setStatusMessage(message);
         setErrorMessage("");
     }
 
     function error(message) {
+        console.error(message);
         setErrorMessage(message);
         setStatusMessage("");
+    }
+
+    function retryCallback(delay) {
+        if (delay === null) {
+            error("Failed to fetch data. Try again later.");
+        } else {
+            info("Too many requests. Retrying in " + delay + "ms");
+        }
     }
 
     // use an effect to update details about papers when selected list changes
@@ -429,9 +475,19 @@ function CitationExplorerApp() {
     async function addRelated(paper_id) {
         // fetch info about references and citations
         info("Fetching references...");
-        var references = await fetchPaperReferences(paper_id);
+        var references = await fetchPaperReferences(paper_id, retryCallback);
+
+        if (references == null) {
+            error("Unable to fetch references");
+            return;
+        }
+
         info("Fetching citations...");
-        var citations = await fetchPaperCitations(paper_id);
+        var citations = await fetchPaperCitations(paper_id, retryCallback);
+        if (citations == null) {
+            error("Unable to fetch citations...");
+            return;
+        }
 
         // add info about related papers
         references.forEach(reference => {
@@ -468,11 +524,11 @@ function CitationExplorerApp() {
 
     async function addPaperByID(requested_paper_id) {
         info("Fetching paper details...");
-        const paper = await fetchPaperInfo(requested_paper_id);
+        const paper = await fetchPaperInfo(requested_paper_id, retryCallback);
 
         if (paper == null) {
-          error("Paper not found");
-          return;
+            error("Paper not found");
+            return;
         }
 
         // SemanticScholar might have multiple ids mapping to the same paper.
@@ -483,6 +539,12 @@ function CitationExplorerApp() {
         // return c3965268b206ec8e7207ce8a74da19530e977460.
         // Normalizing to the paperId returned by the API.
         const paper_id = paper.paperId;
+
+        if (paper_id == null) {
+            console.error("Paper ID is null or undefined");
+            console.log(requested_paper_id, paper);
+        }
+
         setPaperInfo((paperInfo) => ({ ...paperInfo, [paper_id]: paper }));
         setSelectedPapers((selectedPapers) => [...selectedPapers, paper_id]);
 
