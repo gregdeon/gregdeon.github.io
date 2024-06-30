@@ -432,12 +432,19 @@ function CitationExplorerApp() {
     async function addPaperByID(requested_paper_id) {
         setStatusMessage("Fetching paper details...");
         var paper = await fetchPaperInfo(requested_paper_id);
-        var paper_id = paper.paperId;
 
-        setPaperInfo(paperInfo => ({...paperInfo, [paper_id]: paper}));
-        setSelectedPapers(selectedPapers => [...selectedPapers, paper_id]);
+        // SemanticScholar might have multiple ids mapping to the same paper.
+        // We are not guaranteed to have `requested_paper_id == paper.paperId`.
+        // For example both
+        // https://www.semanticscholar.org/paper/a21734255dc92b9ac8de336f2a41bfa77a2e0193
+        // https://www.semanticscholar.org/paper/c3965268b206ec8e7207ce8a74da19530e977460
+        // return c3965268b206ec8e7207ce8a74da19530e977460.
+        // Normalizing to the paperId returned by the API.
+        const paper_id = paper.paperId;
+        setPaperInfo((paperInfo) => ({ ...paperInfo, [paper_id]: paper }));
+        setSelectedPapers((selectedPapers) => [...selectedPapers, paper_id]);
 
-        await addRelated(requested_paper_id);
+        await addRelated(paper_id);
     }
 
     async function selectPaper(id_to_select) {
