@@ -13,35 +13,53 @@ const { useState, useEffect } = React
 const PAPER_FIELDS = ["url", "title", "venue", "year", "authors", "citationCount"].join();
 const MAX_REFERENCES_PER_PAPER = 200; // max = 1000
 
+function makePaper(paper_info) {
+    return {
+        ...paper_info,
+        fetched_related: false,
+        reference_ids: [],
+        citation_ids: [],
+    };
+}
+
 // ----- API calls ------------------------------------------------------------
 // see https://api.semanticscholar.org/api-docs/graph#tag/Paper-Data for API documentation
 async function fetchPaperInfo(paper_id) {
     // fetch details about a single paper
     const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}?fields=${PAPER_FIELDS}`);
-    var paper_info = await response.json();
-    // fill in some extra fields
-    paper_info = {...paper_info, fetched_related: false, reference_ids: [], citation_ids: []};
 
-    return paper_info;
+    if (response.ok) {
+        const paper_info = response.json();
+        return makePaper(paper_info);
+    } else {
+        return null;
+    }
 }
 
 async function fetchPaperCitations(paper_id) {
     // return a list of papers that cite the given paper
     // TODO: handle pagination
     const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}/citations?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`);
-    const citations = await response.json();
-    return citations['data'].map(
-        citation => ({...citation.citingPaper, fetched_related: false, reference_ids: [], citation_ids: []})
-    )
+
+    if (response.ok) {
+        const citations = await response.json();
+        return citations["data"].map((citation) => makePaper(citation.citingPaper));
+    } else {
+        return null;
+    }
 }
 
 async function fetchPaperReferences(paper_id) {
     // return a list of papers that are referenced by the given paper
     const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}/references?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`);
-    const references = await response.json();
-    return references['data'].map(
-        reference => ({...reference.citedPaper, fetched_related: false, reference_ids: [], citation_ids: []})
-    )
+    if (response.ok) {
+        const references = await response.json();
+        return references["data"].map((reference) =>
+            makePaper(reference.citedPaper),
+        );
+    } else {
+        return null;
+    }
 }
 
 // ----- React components -----------------------------------------------------
@@ -91,10 +109,10 @@ function ChangeLog() {
     )
 }
 
-function StatusBar({message}) {
-    if (message === "") {
+function StatusBar({ message, errorMessage }) {
+    if (message === "" && errorMessage === "") {
         return null;
-    } else {
+    } else if (errorMessage === "") {
         return (
             <div className="container-fluid fixed-bottom m-0 p-1">
             <div className="float-end col-md alert alert-info px-2 py-1 m-2">
@@ -103,6 +121,14 @@ function StatusBar({message}) {
             </div>
             </div>
         )
+    } else {
+        return (
+            <div className="container-fluid fixed-bottom m-0 p-1">
+            <div className="float-end col-md alert alert-danger px-2 py-1 m-2">
+            <span className="ms-2 me-0 my-0 p-0">{errorMessage}</span>
+            </div>
+            </div>
+        );
     }
 }
 
@@ -339,6 +365,17 @@ function CitationExplorerApp() {
     const [selectedPapers, setSelectedPapers] = useState([]);
     const [hiddenPapers, setHiddenPapers] = useState([]);
     const [statusMessage, setStatusMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    function info(message) {
+        setStatusMessage(message);
+        setErrorMessage("");
+    }
+
+    function error(message) {
+        setErrorMessage(message);
+        setStatusMessage("");
+    }
 
     // use an effect to update details about papers when selected list changes
     useEffect(() => {
@@ -391,9 +428,9 @@ function CitationExplorerApp() {
 
     async function addRelated(paper_id) {
         // fetch info about references and citations
-        setStatusMessage("Fetching references...");
+        info("Fetching references...");
         var references = await fetchPaperReferences(paper_id);
-        setStatusMessage("Fetching citations...");
+        info("Fetching citations...");
         var citations = await fetchPaperCitations(paper_id);
 
         // add info about related papers
@@ -430,8 +467,13 @@ function CitationExplorerApp() {
     }
 
     async function addPaperByID(requested_paper_id) {
-        setStatusMessage("Fetching paper details...");
-        var paper = await fetchPaperInfo(requested_paper_id);
+        info("Fetching paper details...");
+        const paper = await fetchPaperInfo(requested_paper_id);
+
+        if (paper == null) {
+          error("Paper not found");
+          return;
+        }
 
         // SemanticScholar might have multiple ids mapping to the same paper.
         // We are not guaranteed to have `requested_paper_id == paper.paperId`.
@@ -480,7 +522,7 @@ function CitationExplorerApp() {
             <PaperTable paperInfo={paperInfo} selectedPapers={selectedPapers} hiddenPapers={hiddenPapers} numRelatedPapers={numRelatedPapers} selectPaper={selectPaper} deselectPaper={deselectPaper} hidePaper={hidePaper} unhidePaper={unhidePaper}
             />
 
-            <StatusBar message={statusMessage}/>
+            <StatusBar message={statusMessage} errorMessage={errorMessage} />
         </>
     );
 }
