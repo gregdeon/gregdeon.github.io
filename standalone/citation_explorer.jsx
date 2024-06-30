@@ -1,6 +1,5 @@
 // TODOs:
 // - don't double-count edges (e.g., paper A cites B twice, or A and B both cite each other)
-// - make saving + loading work
 // - make change log scrollable
 // - "Lose changes" dialog when leaving page
 // - autosave + reset (local storage? 5MB limit seems small; maybe enough to just save paper IDs)
@@ -8,40 +7,94 @@
 // - add ability to change max references fetched per paper
 // - handle small screens?
 
-const { useState, useEffect } = React
+const { useState, useEffect, useRef } = React;
 
 const PAPER_FIELDS = ["url", "title", "venue", "year", "authors", "citationCount"].join();
 const MAX_REFERENCES_PER_PAPER = 200; // max = 1000
 
+function makePaper(paper_info) {
+    return {
+        ...paper_info,
+        fetched_related: false,
+        reference_ids: [],
+        citation_ids: [],
+    };
+}
+
+async function fetchRetry({url, max_retries = 4, delay = 500, callback = null}) {
+    for (let i = 0; i < max_retries; i++) {
+        try {
+            // SemanticScholar does not set correct CORS headers when rate limiting (429, Too many requests),
+            // which will throw an exception rather than a normal response.
+            const response = await fetch(url);
+
+            if (!response.ok) {
+                if (response.status === 429) {
+                    // In case they fix the CORS headers, throw to still trigger the retry mechanism.
+                    throw new Error("Too many requests");
+                }
+            }
+
+            return response;
+        } catch (error) {
+            console.info(
+                `Encountered error, most likely hitting the rate limit. Trying again in ${delay} ms.`,
+            );
+            console.info(error);
+            callback?.(delay);
+            await new Promise((r) => setTimeout(r, delay));
+            delay *= 2;
+        }
+    }
+    callback?.(null);
+}
+
 // ----- API calls ------------------------------------------------------------
 // see https://api.semanticscholar.org/api-docs/graph#tag/Paper-Data for API documentation
-async function fetchPaperInfo(paper_id) {
+async function fetchPaperInfo(paper_id, callback = null) {
     // fetch details about a single paper
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}?fields=${PAPER_FIELDS}`);
-    var paper_info = await response.json();
-    // fill in some extra fields
-    paper_info = {...paper_info, fetched_related: false, reference_ids: [], citation_ids: []};
+    const response = await fetchRetry({
+        url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}?fields=${PAPER_FIELDS}`,
+        callback: callback,
+    });
 
-    return paper_info;
+    if (response.ok) {
+        const paper_info = await response.json();
+        return makePaper(paper_info);
+    } else {
+        return null;
+    }
 }
 
-async function fetchPaperCitations(paper_id) {
+async function fetchPaperCitations(paper_id, callback = null) {
     // return a list of papers that cite the given paper
     // TODO: handle pagination
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}/citations?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`);
-    const citations = await response.json();
-    return citations['data'].map(
-        citation => ({...citation.citingPaper, fetched_related: false, reference_ids: [], citation_ids: []})
-    )
+    const response = await fetchRetry({
+        url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/citations?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`,
+        callback: callback,
+    });
+    if (response.ok) {
+        const citations = await response.json();
+        return citations["data"].map((citation) => makePaper(citation.citingPaper));
+    } else {
+        return null;
+    }
 }
 
-async function fetchPaperReferences(paper_id) {
+async function fetchPaperReferences(paper_id, callback = null) {
     // return a list of papers that are referenced by the given paper
-    const response = await fetch(`https://api.semanticscholar.org/graph/v1/paper/${paper_id}/references?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`);
-    const references = await response.json();
-    return references['data'].map(
-        reference => ({...reference.citedPaper, fetched_related: false, reference_ids: [], citation_ids: []})
-    )
+    const response = await fetchRetry({
+        url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/references?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`,
+        callback: callback,
+    });
+    if (response.ok) {
+        const references = await response.json();
+        return references["data"].map((reference) =>
+            makePaper(reference.citedPaper),
+        );
+    } else {
+        return null;
+    }
 }
 
 // ----- React components -----------------------------------------------------
@@ -91,10 +144,10 @@ function ChangeLog() {
     )
 }
 
-function StatusBar({message}) {
-    if (message === "") {
+function StatusBar({ message, errorMessage }) {
+    if (message === "" && errorMessage === "") {
         return null;
-    } else {
+    } else if (errorMessage === "") {
         return (
             <div className="container-fluid fixed-bottom m-0 p-1">
             <div className="float-end col-md alert alert-info px-2 py-1 m-2">
@@ -103,22 +156,35 @@ function StatusBar({message}) {
             </div>
             </div>
         )
+    } else {
+        return (
+            <div className="container-fluid fixed-bottom m-0 p-1">
+            <div className="float-end col-md alert alert-danger px-2 py-1 m-2">
+            <span className="ms-2 me-0 my-0 p-0">{errorMessage}</span>
+            </div>
+            </div>
+        );
     }
 }
 
-function LoadSaveButtons() {
-    function load() {
-        alert("🚧 Under construction");
-    }
+function LoadSaveButtons({ savefunc, loadfunc }) {
+    const inputFile = useRef(null);
 
-    function save() {
-        alert("🚧 Under construction");
+    const onLoadButtonClick = () => {
+        inputFile.current.click();
+    };
+
+    function loadFile(e) {
+        const reader = new FileReader();
+        reader.onload = (e) => loadfunc(JSON.parse(e.target.result));
+        reader.readAsText(e.target.files[0]);
     }
 
     return (
         <div>
-            <button type="button" className="btn btn-primary" onClick={load}>Load</button>
-            <button type="button" className="btn btn-primary" onClick={save}>Save</button>
+            <input type="file" id="file" ref={inputFile} style={{ display: "none" }} onChange={loadFile} />
+            <button type="button" className="btn btn-primary me-1" onClick={onLoadButtonClick}>Load</button>
+            <button type="button" className="btn btn-primary me-1" onClick={savefunc}>Save</button>
         </div>
     );
 }
@@ -339,6 +405,50 @@ function CitationExplorerApp() {
     const [selectedPapers, setSelectedPapers] = useState([]);
     const [hiddenPapers, setHiddenPapers] = useState([]);
     const [statusMessage, setStatusMessage] = useState("");
+    const [errorMessage, setErrorMessage] = useState("");
+
+    function info(message) {
+        console.info(message);
+        setStatusMessage(message);
+        setErrorMessage("");
+    }
+
+    function error(message) {
+        console.error(message);
+        setErrorMessage(message);
+        setStatusMessage("");
+    }
+
+    function retryCallback(delay) {
+        if (delay === null) {
+            error("Failed to fetch data. Try again later.");
+        } else {
+            info("Too many requests. Retrying in " + delay + "ms");
+        }
+    }
+
+    function save() {
+        var tmp_link = document.createElement("a");
+        var file = new Blob(
+            [JSON.stringify(selectedPapers)],
+            {type: "application/json"}
+        );
+        tmp_link.href = URL.createObjectURL(file);
+        tmp_link.download = `citation_explorer_${new Date().toISOString()}.json`;
+        tmp_link.click();
+    }
+
+    async function load(newSelectedPapers) {
+        setPaperInfo({});
+        setNumRelatedPapers({});
+        setSelectedPapers([]);
+        setHiddenPapers([]);
+        console.log("Loading papers: " + newSelectedPapers);
+
+        for (const paper_id of newSelectedPapers) {
+            await addPaperByID(paper_id);
+        }
+    }
 
     // use an effect to update details about papers when selected list changes
     useEffect(() => {
@@ -391,10 +501,20 @@ function CitationExplorerApp() {
 
     async function addRelated(paper_id) {
         // fetch info about references and citations
-        setStatusMessage("Fetching references...");
-        var references = await fetchPaperReferences(paper_id);
-        setStatusMessage("Fetching citations...");
-        var citations = await fetchPaperCitations(paper_id);
+        info("Fetching references...");
+        var references = await fetchPaperReferences(paper_id, retryCallback);
+
+        if (references == null) {
+            error("Unable to fetch references");
+            return;
+        }
+
+        info("Fetching citations...");
+        var citations = await fetchPaperCitations(paper_id, retryCallback);
+        if (citations == null) {
+            error("Unable to fetch citations...");
+            return;
+        }
 
         // add info about related papers
         references.forEach(reference => {
@@ -430,14 +550,32 @@ function CitationExplorerApp() {
     }
 
     async function addPaperByID(requested_paper_id) {
-        setStatusMessage("Fetching paper details...");
-        var paper = await fetchPaperInfo(requested_paper_id);
-        var paper_id = paper.paperId;
+        info("Fetching paper details...");
+        const paper = await fetchPaperInfo(requested_paper_id, retryCallback);
 
-        setPaperInfo(paperInfo => ({...paperInfo, [paper_id]: paper}));
-        setSelectedPapers(selectedPapers => [...selectedPapers, paper_id]);
+        if (paper == null) {
+            error("Paper not found");
+            return;
+        }
 
-        await addRelated(requested_paper_id);
+        // SemanticScholar might have multiple ids mapping to the same paper.
+        // We are not guaranteed to have `requested_paper_id == paper.paperId`.
+        // For example both
+        // https://www.semanticscholar.org/paper/a21734255dc92b9ac8de336f2a41bfa77a2e0193
+        // https://www.semanticscholar.org/paper/c3965268b206ec8e7207ce8a74da19530e977460
+        // return c3965268b206ec8e7207ce8a74da19530e977460.
+        // Normalizing to the paperId returned by the API.
+        const paper_id = paper.paperId;
+
+        if (paper_id == null) {
+            console.error("Paper ID is null or undefined");
+            console.log(requested_paper_id, paper);
+        }
+
+        setPaperInfo((paperInfo) => ({ ...paperInfo, [paper_id]: paper }));
+        setSelectedPapers((selectedPapers) => [...selectedPapers, paper_id]);
+
+        await addRelated(paper_id);
     }
 
     async function selectPaper(id_to_select) {
@@ -467,13 +605,13 @@ function CitationExplorerApp() {
         
             <ChangeLog/>
 
-            <LoadSaveButtons />
+            <LoadSaveButtons savefunc={save} loadfunc={load} />
             <PaperLookup addPaper={addPaperByID}/>
 
             <PaperTable paperInfo={paperInfo} selectedPapers={selectedPapers} hiddenPapers={hiddenPapers} numRelatedPapers={numRelatedPapers} selectPaper={selectPaper} deselectPaper={deselectPaper} hidePaper={hidePaper} unhidePaper={unhidePaper}
             />
 
-            <StatusBar message={statusMessage}/>
+            <StatusBar message={statusMessage} errorMessage={errorMessage} />
         </>
     );
 }
