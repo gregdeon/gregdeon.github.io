@@ -18,6 +18,7 @@ const PAPER_FIELDS = [
   "citationCount",
 ].join();
 const MAX_REFERENCES_PER_PAPER = 200; // max = 1000
+const ITEMS_PER_PAGE = 50;
 
 function makePaper(paper_info) {
   return {
@@ -254,6 +255,83 @@ function LoadSaveButtons({ savefunc, loadfunc }) {
   );
 }
 
+function Pagination({ current, goToPage, nPages }) {
+  function CellItem({ pageNumber = null, isActive = false }) {
+    const bootstrapClass =
+      pageNumber == null
+        ? "page-link disabled"
+        : isActive
+          ? "page-link active"
+          : "page-link";
+    return (
+      <li className="page-item">
+        <a
+          className={bootstrapClass}
+          href="#"
+          onClick={() => goToPage(pageNumber)}
+        >
+          {pageNumber == null ? "..." : pageNumber}
+        </a>
+      </li>
+    );
+  }
+
+  let pagesToShow = [];
+
+  let p = nPages;
+  if (p <= 7) {
+    pagesToShow = [...Array(p).keys()].map((i) => i + 1);
+  } else {
+    if (current <= 3) {
+      pagesToShow = [1, 2, 3, 4, 5, null, p];
+    } else if (current >= p - 2) {
+      pagesToShow = [1, null, p - 4, p - 3, p - 2, p - 1, p];
+    } else {
+      pagesToShow = [1, null, current - 1, current, current + 1, null, p];
+    }
+  }
+
+  let prevBtnClass = current === 1 ? "page-item disabled" : "page-item";
+  let nextBtnClass = current === p ? "page-item disabled" : "page-item";
+
+  return (
+    <nav aria-label="Page navigation">
+      <label htmlFor="Pagination" className="text-muted">
+        <small></small>
+      </label>
+      <ul className="pagination justify-content-end">
+        <li key={0} className={prevBtnClass}>
+          <a
+            className="page-link"
+            href="#"
+            onClick={() => goToPage(current - 1)}
+          >
+            Previous
+          </a>
+        </li>
+        {pagesToShow.map((page, idx) => {
+          return (
+            <CellItem
+              key={idx + 1}
+              pageNumber={page}
+              isActive={page === current}
+            />
+          );
+        })}
+        <li key={pagesToShow.length + 1} className={nextBtnClass}>
+          <a
+            className="page-link"
+            href="#"
+            onClick={() => goToPage(current + 1)}
+          >
+            Next
+          </a>
+        </li>
+      </ul>
+    </nav>
+  );
+}
+
 function PaperLookup({ addPaper }) {
   const [paperId, setPaperId] = useState("");
 
@@ -329,6 +407,11 @@ function PaperTable({
 }) {
   const [primarySort, setPrimarySort] = useState([5, "desc"]);
   const [secondarySort, setSecondarySort] = useState([4, "desc"]);
+  const [currentPage, setCurrentPage] = useState(1);
+
+  function goToPage(pageNumber) {
+    setCurrentPage(pageNumber);
+  }
 
   // build columns programmatically
   const columns = [
@@ -436,55 +519,64 @@ function PaperTable({
     </thead>
   );
 
+  function select_page(paper_ids) {
+    return paper_ids.slice(
+      (currentPage - 1) * ITEMS_PER_PAGE,
+      currentPage * ITEMS_PER_PAGE,
+    );
+  }
+
   function table_body(paper_ids) {
     return (
       <tbody>
-        {sortPapers(paper_ids, primarySort, secondarySort).map((paper_id) => {
-          const paper = paperInfo[paper_id];
-          return (
-            <tr
-              key={paper_id}
-              className={
-                selectedPapers.includes(paper_id) ? "selected-paper" : ""
-              }
-            >
-              <td className="paper-selector table-icon">
-                {selectedPapers.includes(paper_id) ? (
-                  <span onClick={() => deselectPaper(paper_id)}>➖</span>
-                ) : hiddenPapers.includes(paper_id) ? (
-                  ""
-                ) : (
-                  <span onClick={() => selectPaper(paper_id)}>➕</span>
-                )}
-              </td>
-              <td className="paper-hider table-icon">
-                {hiddenPapers.includes(paper_id) ? (
-                  <span onClick={() => unhidePaper(paper_id)}>🟢</span>
-                ) : selectedPapers.includes(paper_id) ? (
-                  ""
-                ) : (
-                  <span onClick={() => hidePaper(paper_id)}>🚫</span>
-                )}
-              </td>
-              <td>{paper.title}</td>
-              <td>{paper.authors.map((author) => author.name).join(", ")}</td>
-              <td>{paper.venue}</td>
-              <td>{paper.year}</td>
-              <td>{paper.citationCount}</td>
-              <td>{numRelatedPapers[paper_id]}</td>
-              <td className="table-icon">
-                <a
-                  href={paper.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="paper-link"
-                >
-                  🔗
-                </a>
-              </td>
-            </tr>
-          );
-        })}
+        {select_page(sortPapers(paper_ids, primarySort, secondarySort)).map(
+          (paper_id) => {
+            const paper = paperInfo[paper_id];
+            return (
+              <tr
+                key={paper_id}
+                className={
+                  selectedPapers.includes(paper_id) ? "selected-paper" : ""
+                }
+              >
+                <td className="paper-selector table-icon">
+                  {selectedPapers.includes(paper_id) ? (
+                    <span onClick={() => deselectPaper(paper_id)}>➖</span>
+                  ) : hiddenPapers.includes(paper_id) ? (
+                    ""
+                  ) : (
+                    <span onClick={() => selectPaper(paper_id)}>➕</span>
+                  )}
+                </td>
+                <td className="paper-hider table-icon">
+                  {hiddenPapers.includes(paper_id) ? (
+                    <span onClick={() => unhidePaper(paper_id)}>🟢</span>
+                  ) : selectedPapers.includes(paper_id) ? (
+                    ""
+                  ) : (
+                    <span onClick={() => hidePaper(paper_id)}>🚫</span>
+                  )}
+                </td>
+                <td>{paper.title}</td>
+                <td>{paper.authors.map((author) => author.name).join(", ")}</td>
+                <td>{paper.venue}</td>
+                <td>{paper.year}</td>
+                <td>{paper.citationCount}</td>
+                <td>{numRelatedPapers[paper_id]}</td>
+                <td className="table-icon">
+                  <a
+                    href={paper.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="paper-link"
+                  >
+                    🔗
+                  </a>
+                </td>
+              </tr>
+            );
+          },
+        )}
       </tbody>
     );
   }
@@ -499,7 +591,7 @@ function PaperTable({
     <>
       <form>
         <div className="row" style={{ background: "white" }}>
-          <div className="mb-3 col-md-4">
+          <div className="mb-3 col-md">
             <label htmlFor="primarySort" className="text-muted">
               <small>Primary sort</small>
             </label>
@@ -512,7 +604,7 @@ function PaperTable({
               {sort_options}
             </select>
           </div>
-          <div className="mb-3 col-md-4">
+          <div className="mb-3 col-md">
             <label htmlFor="secondarySort" className="text-muted">
               <small>Secondary sort</small>
             </label>
@@ -524,6 +616,13 @@ function PaperTable({
             >
               {sort_options}
             </select>
+          </div>
+          <div className="col-md">
+            <Pagination
+              current={currentPage}
+              goToPage={goToPage}
+              nPages={Math.ceil(visible_paper_ids.length / ITEMS_PER_PAGE)}
+            />
           </div>
         </div>
       </form>
