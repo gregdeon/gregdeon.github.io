@@ -9,7 +9,8 @@ Conference Papers:
     venue: EC 2024
     code: https://github.com/newmanne/open_spiel
     arxiv: https://arxiv.org/abs/2402.19420
-    status: to appear
+    # pdf: files/deon-2024-EC-marl_for_auctions.pdf
+    slides: files/deon-2024-EC-marl_for_auctions_slides.pdf
   -
     title: "How to Evaluate Behavioral Models"
     authors:
