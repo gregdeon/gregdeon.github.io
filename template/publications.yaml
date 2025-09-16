@@ -1,7 +1,17 @@
 Pre-Prints: 
+  -
+    title: "ElementaryNet: A Non-Strategic Neural Network for Predicting Human Behavior in Normal-Form Games"
+    authors: 
+      - Greg d'Eon
+      - Hala Murad
+      - Kevin Leyton-Brown
+      - James R. Wright
+    venue: AAAI 2026
+    arxiv: https://arxiv.org/abs/2503.05925
+    status: in submission 
 Conference Papers:
   -
-    title: Understanding Iterative Combinatorial Auction Designs via Multi-Agent Reinforcement Learning
+    title: "Understanding Iterative Combinatorial Auction Designs via Multi-Agent Reinforcement Learning"
     authors:
       - Greg d'Eon
       - Neil Newman
