@@ -1,4 +1,5 @@
-Pre-Prints: 
+# Pre-Prints: 
+Conference Papers:
   -
     title: "ElementaryNet: A Non-Strategic Neural Network for Predicting Human Behavior in Normal-Form Games"
     authors: 
@@ -8,8 +9,7 @@ Pre-Prints:
       - James R. Wright
     venue: AAAI 2026
     arxiv: https://arxiv.org/abs/2503.05925
-    status: in submission 
-Conference Papers:
+    status: to appear 
   -
     title: "Understanding Iterative Combinatorial Auction Designs via Multi-Agent Reinforcement Learning"
     authors:
