@@ -9,7 +9,8 @@ Conference Papers:
       - James R. Wright
     venue: AAAI 2026
     arxiv: https://arxiv.org/abs/2503.05925
-    status: to appear 
+    code: https://github.com/gregdeon/elementarynet
+    status: to appear
   -
     title: "Understanding Iterative Combinatorial Auction Designs via Multi-Agent Reinforcement Learning"
     authors:
