@@ -97,6 +97,14 @@
     content: "🖼️ ";
 }
 
+.poster {
+    background-color: #618;
+}
+
+.poster::before {
+    content: "🖼️ ";
+}
+
 .video {
     background-color: #378;
 }
