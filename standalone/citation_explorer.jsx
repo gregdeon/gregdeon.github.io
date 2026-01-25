@@ -82,12 +82,22 @@ async function fetchPaperInfo(paper_id, callback = null) {
 async function fetchPaperCitations(paper_id, callback = null) {
   // return a list of papers that cite the given paper
   // TODO: handle pagination
+  const url = `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/citations?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`;
   const response = await fetchRetry({
-    url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/citations?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`,
+    url: url,
     callback: callback,
   });
   if (response.ok) {
     const citations = await response.json();
+
+    if(citations["data"] === null){
+      console.log("Semanticsholar does not return citations for " + paper_id + ". Got response:");
+      console.log(references)
+      console.log("If a manual call to the API works at the following url returns `data: null`, this is a Semanticscholar issue");
+      console.log(url);
+      return null;
+    }
+
     return citations["data"].map((citation) => makePaper(citation.citingPaper));
   } else {
     return null;
@@ -96,12 +106,22 @@ async function fetchPaperCitations(paper_id, callback = null) {
 
 async function fetchPaperReferences(paper_id, callback = null) {
   // return a list of papers that are referenced by the given paper
+  const url = `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/references?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`
   const response = await fetchRetry({
-    url: `https://api.semanticscholar.org/graph/v1/paper/${paper_id}/references?fields=${PAPER_FIELDS}&limit=${MAX_REFERENCES_PER_PAPER}`,
+    url: url,
     callback: callback,
   });
   if (response.ok) {
     const references = await response.json();
+
+    if(references["data"] === null){
+      console.log("Semanticsholar does not return references for " + paper_id + ". This is likely a Semantic Scholar error. Got response:");
+      console.log(references)
+      console.log("If a manual call to the API works at the following url returns `data: null`, this is a Semanticscholar issue");
+      console.log(url);
+      return null;
+    }
+
     return references["data"].map((reference) =>
       makePaper(reference.citedPaper),
     );
@@ -781,16 +801,20 @@ function CitationExplorerApp() {
     // fetch info about references and citations
     info("Fetching references...");
     var references = await fetchPaperReferences(paper_id, retryCallback);
-
-    if (references == null) {
-      error("Unable to fetch references");
-      return;
+    var got_references = references !== null;
+    if (!got_references) {
+        references = [];
     }
 
     info("Fetching citations...");
     var citations = await fetchPaperCitations(paper_id, retryCallback);
-    if (citations == null) {
-      error("Unable to fetch citations...");
+    var got_citations = citations !== null;
+    if (!got_citations) {
+        citations = [];
+    }
+
+    if (!got_references && !got_citations) {
+      error("Unable to fetch references or citations for paper " + paper_id);
       return;
     }
 
@@ -829,7 +853,13 @@ function CitationExplorerApp() {
       },
     }));
 
-    setStatusMessage("");
+    if (!got_references) {
+      error("Unable to fetch references, likely a Semanticscholar error. Citations were loaded.")
+    } else if (!got_citations) {
+      error("Unable to fetch citations, likely a Semanticscholar error. References were loaded.")
+    } else {
+      setStatusMessage("");
+    }
   }
 
   async function addPaperByID(requested_paper_id) {
